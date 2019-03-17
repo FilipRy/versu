@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>
+<html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html lang="en" ng-app="myApp" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en" ng-app="myApp" class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+
+    <title>Versu App</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link rel="stylesheet" href="webjars/html5-boilerplate/5.2.0/dist/css/normalize.css">
+    <link rel="stylesheet" href="webjars/html5-boilerplate/5.2.0/dist/css/main.css">
+    <link rel="stylesheet" href="webjars/angular-material/1.1.1/angular-material.css">
+
+    <!--<link rel="stylesheet" href="webjars/materialize/0.97.7/dist/css/materialize.css">-->
+
+    <link rel="stylesheet" href="webjars/angular-bootstrap/2.1.4/ui-bootstrap-csp.css">
+
+    <!--<link rel="stylesheet" href="webjars/bootstrap/3.3.7/dist/css/bootstrap.css">-->
+    <!--<link rel="stylesheet" href="webjars/bootstrap/3.3.7/dist/css/bootstrap.min.css">-->
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+
+    <!--<link rel="stylesheet" href="webjars/angular-emoji-filter-hd/dist/emoji.min.css">-->
+
+    <link rel="stylesheet" href="app.css">
+
+    <script src="webjars/html5-boilerplate/5.2.0/dist/js/vendor/modernizr-2.8.3.min.js"></script>
+
+</head>
+<body>
+
+<div class="full-height" layout="column">
+    <div ng-view></div>
+
+    <div flex></div>
+
+    <div class="page-footer versuColor">
+        <md-toolbar>
+            <div class="container" layout="column">
+                <div layout="column" layout-align="center center" layout-gt-sm="row"
+                     layout-align-gt-sm="start-stretch">
+                    <div flex-gt-sm="50" layout="column">
+                        <p class="md-body-1">Versu app is at the moment only available for <b>Android</b>.</p>
+                        <div flex></div>
+                        <p hide show-gt-sm class="md-caption">
+                            2016 &copy; VERSU
+                        </p>
+                    </div>
+                    <md-list>
+                        <md-list-item class="md-1-line" ng-click="null" ng-href="https://www.facebook.com/VersuApp/"
+                                      target="_blank">
+                            <md-button
+                                    aria-label="Facebook"
+                                    class="md-icon-button launch">
+                                <md-icon md-svg-icon="img/icon/facebook.svg"></md-icon>
+                            </md-button>
+                            <h4 class="md-body-1 footer-contact-link-h4">Facebook</h4>
+                        </md-list-item>
+                        <md-list-item class="md-1-line" ng-click="null" ng-href="https://twitter.com/versuapp"
+                                      target="_blank">
+                            <md-button
+                                    aria-label="Twitter"
+                                    class="md-icon-button launch">
+                                <md-icon md-svg-icon="img/icon/twitter.svg"></md-icon>
+                            </md-button>
+                            <h4 class="md-body-1 footer-contact-link-h4">Twitter</h4>
+                        </md-list-item>
+                        <md-list-item class="md-1-line" ng-click="null"
+                                      ng-href="mailto:info@versu.co?Subject=Hello%20:)" target="_blank">
+                            <md-button
+                                    aria-label="Email"
+                                    class="md-icon-button launch">
+                                <md-icon md-svg-icon="img/icon/email-outline.svg"></md-icon>
+                            </md-button>
+                            <h4 class="md-body-1 footer-contact-link-h4">Email us</h4>
+                        </md-list-item>
+                    </md-list>
+
+                    <p hide-gt-sm class="md-caption">
+                        2016 &copy; VERSU
+                    </p>
+
+                </div>
+
+            </div>
+        </md-toolbar>
+    </div>
+
+</div>
+
+<!-- In production use:
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
+-->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+
+<script src="webjars/angular/1.5.8/angular.js"></script>
+<script src="webjars/angular-route/1.5.8/angular-route.js"></script>
+<script src="webjars/angular-cookies/1.5.8/angular-cookies.js"></script>
+<script src="webjars/angular-material/1.1.1/angular-material.js"></script>
+<script src="webjars/angular-animate/1.5.8/angular-animate.js"></script>
+<script src="webjars/angular-aria/1.5.8/angular-aria.js"></script>
+<script src="webjars/moment/2.15.0/min/moment.min.js"></script>
+<script src="webjars/moment/2.15.0/min/moment-with-locales.min.js"></script>
+<script src="webjars/ngInfiniteScroll/1.3.0/build/ng-infinite-scroll.min.js"></script>
+
+<!--<script src="webjars/materialize/0.97.7/dist/js/materialize.js"></script>-->
+<!--<script src="webjars/materialize/0.97.7/dist/js/materialize.min.js"></script>-->
+
+<!--<script src="webjars/bootstrap/3.3.7/dist/js/bootstrap.min.js"></script>-->
+<!--<script src="webjars/bootstrap/3.3.7/dist/js/bootstrap.js"></script>-->
+<script src="webjars/angular-bootstrap/2.1.4/ui-bootstrap-tpls.min.js"></script>
+
+<script src="webjars/angular-sanitize/1.5.8/angular-sanitize.min.js"></script>
+<script src="webjars/angular-messages/1.5.8/angular-messages.min.js"></script>
+
+<script src="webjars/angular-scroll/1.0.0/angular-scroll.min.js"></script>
+
+<!--emojis-->
+<!--<script src="bower_components/angular-emoji-filter-hd/dist/emoji.min.js"></script>-->
+
+
+<script src="app.js"></script>
+<script src="post_detail/post_detail.js"></script>
+<script src="about/about.js"></script>
+<script src="main/main.js"></script>
+
+<script type="text/javascript" src="factories/authFact.js"></script>
+<script type="text/javascript" src="factories/votersPagingFact.js"></script>
+<script type="text/javascript" src="services/services.js"></script>
+<script type="text/javascript" src="services/constants.js"></script>
+<script type="text/javascript" src="directives/scrollOnClick.js"></script>
+
+<script src="components/version/version.js"></script>
+<script src="components/version/version-directive.js"></script>
+<script src="components/version/interpolate-filter.js"></script>
+
+
+</body>
+</html>

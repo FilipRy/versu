@@ -1,0 +1,173 @@
+<!--menu-->
+<md-toolbar style="box-shadow: 0 2px 5px 0 rgba(0,0,0,.16),0 2px 10px 0 rgba(0,0,0,.12);">
+    <div class="md-toolbar-tools">
+
+        <md-button class="md-icon-button" aria-label="Menu" hide-gt-sm>
+            <md-icon class="md-hue-3" md-svg-icon="img/icon/menu.svg" ng-click="toggleLeft()"></md-icon>
+        </md-button>
+
+        <div class="container">
+            <a id="logo-container" href="#/">
+                <img id="logo" src="img/assets/versu-logo-white.png" alt="logo">
+            </a>
+
+            <div class="right" layout="row" layout-align="center center">
+                <div ng-repeat="section in sections" hide-sm hide-xs>
+                    <md-button ng-href={{section.link}}>{{section.name}}</md-button>
+                </div>
+
+
+                <div class="toolbar-icons">
+                    <md-button ng-href="https://twitter.com/versuapp" target="_blank"
+                               class="md-icon-button launch" aria-label="twitter" style="margin: 0px;">
+                        <md-icon md-svg-icon="img/icon/twitter.svg"></md-icon>
+                    </md-button>
+                    <md-button ng-href="https://www.facebook.com/VersuApp/" target="_blank" style="margin: 0px;"
+                               aria-label="Facebook"
+                               class="md-icon-button launch">
+                        <md-icon md-svg-icon="img/icon/facebook.svg"></md-icon>
+                    </md-button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</md-toolbar>
+
+<md-sidenav class="md-sidenav-left" md-component-id="left" md-whiteframe="4">
+
+
+    <md-content>
+
+        <md-list flex>
+            <md-list-item class="md-2-line" ng-repeat="section in sections" ng-href={{section.link}}>
+                <div class="md-list-item-text" layout="column">
+                    <h3 class="md-headline">{{ section.name }}</h3>
+                </div>
+            </md-list-item>
+
+        </md-list>
+
+
+    </md-content>
+
+</md-sidenav>
+
+
+<!-- page content -->
+<div id="pageContent" flex>
+
+    <div class="present-photo" id="index-banner" layout-align="center center">
+        <div class="container" layout="column" layout-align="center center">
+
+            <br/>
+            <br/>
+            <br/>
+
+            <h2 class="md-display-1 app-quote-text thin-font">snap a dilemma<br>and let the world<br>decide</h2>
+            <md-button class="md-raised md-primary" ng-click="scrollTo('sign-up-beta-android')">Join Beta</md-button>
+
+        </div>
+    </div>
+
+
+    <div class="container main-section-div" layout="column">
+        <div layout="column" layout-gt-sm="row" layout-align="center center" layout-align-gt-sm="center start">
+
+            <div class="icon-block" layout="column" layout-align="center center">
+
+                <h2 class="md-display-1" style="color: #9963EC"><i class="material-icons">photo_camera</i>ask</h2>
+                <img src="img/assets/ask.png" alt="ask" width="350">
+                <h5 class="center versuDefaultTtext thin-font">use pictures to ask about anything</h5>
+
+            </div>
+
+            <div class="icon-block onboarding-right-side" layout="column" layout-align="center center">
+
+                <h2 class="md-display-1" style="color: #787ff4"><i class="material-icons">thumb_up</i>vote</h2>
+                <img src="img/assets/vote.png" alt="vote" width="350">
+                <h5 class="center versuDefaultTtext thin-font">help your friends to decide</h5>
+
+            </div>
+
+
+        </div>
+
+        <div layout="column" layout-gt-sm="row" layout-align="center center" layout-align-gt-sm="center start">
+
+            <div class="icon-block" layout="column" layout-align="center center">
+                <h2 class="md-display-1" style="color: #4ba6ef"><i class="material-icons">location_on</i>discover</h2>
+                <img src="img/assets/discover.png" alt="discover" width="350">
+                <h5 class="center versuDefaultTtext thin-font">find similar questions in your area</h5>
+            </div>
+
+            <div class="icon-block onboarding-right-side" layout="column" layout-align="center center">
+                <h2 class="md-display-1" style="color: #57cb8a"><i class="material-icons">share</i>share</h2>
+                <img src="img/assets/share.png" alt="share" width="350">
+                <h5 class="center versuDefaultTtext thin-font">share on web<br>everyone can answer</h5>
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <div class="sign-up-root-div" style="box-shadow: 0 2px 5px 0 rgba(0,0,0,.16),0 2px 10px 0 rgba(0,0,0,.12);">
+        <div id="sign-up-beta-android" class="container sign-up-section-div" layout="column"
+             layout-align="center center">
+
+            <h5 class="versuDefaultTtext" style="font-weight: 400;">
+                Join Versu in its Beta Stage!
+                <i class="material-icons" style="vertical-align: -6px; font-size: 25px; margin-left: 10px;">
+                    android
+                </i>
+            </h5>
+
+            <div class="container" layout-align="center stretch">
+
+                <form ng-cloak name="subscribeForm" layout="column">
+                    <div layout="column" layout-align="space-around stretch">
+
+                        <md-input-container class="subscribe-form-input-top md-block">
+                            <label>First name</label>
+                            <input required="" ng-model="user.username" name="username" minlength="3" maxlength="100">
+                            <div ng-messages="subscribeForm.username.$error" role="alert">
+                                <div ng-message-exp="['required', 'minlength', 'maxlength']">
+                                    Your username must be between 3 and 100 characters long.
+                                </div>
+                            </div>
+                        </md-input-container>
+
+                        <md-input-container class="md-block">
+                            <label>Email</label>
+                            <input required="" type="email" name="email" ng-model="user.email"
+                                   minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/"/>
+                            <div ng-messages="subscribeForm.email.$error" role="alert">
+                                <div ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+                                    Your email must be between 10 and 100 characters long and look like an e-mail
+                                    address.
+                                </div>
+                            </div>
+                        </md-input-container>
+
+                    </div>
+
+                    <div layout="row" layout-align="center center">
+                        <md-button ng-click="joinApp()" class="md-raised md-primary"
+                                   ng-disabled="subscribeForm.$invalid">
+                            Join Beta
+                        </md-button>
+                    </div>
+                </form>
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+

@@ -1,0 +1,352 @@
+/* app css stylesheet for post.html */
+
+img.photo {
+    width: 100%;
+}
+
+.postPropertiesContainer {
+    width: 100%;
+}
+
+@media only screen and (min-width: 401px) {
+
+    img.photo {
+        width: 400px;
+    }
+
+    .postPropertiesContainer {
+        width: 400px;
+    }
+}
+
+#nameBox {
+    border-radius: 0 4px 0 0;
+    background: #f8f8f8;
+    text-align: left;
+}
+
+.commentsContainer {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.avatar {
+    width: 50px;
+    float: left;
+    margin: 15px;
+    border-radius: 50px;
+}
+
+.versuDialogContent {
+    padding: 0px;
+}
+
+.avatarMini {
+    width: 30px;
+    float: left;
+    margin: 15px;
+    margin-left: 0px;
+    border-radius: 30px;
+}
+
+.postOwnerNameContainer {
+    margin: 15px;
+}
+
+
+
+.name {
+    color: #357396 !important;
+    font-size: 16px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+    text-transform: none;
+}
+
+.time {
+    font-size: 13px !important;
+    color: #444444;
+    margin: 0px;
+}
+
+.clickableItem {
+    color: #357396;
+}
+
+.location {
+    color: #357396;
+    padding-left: 5px;
+    font-size: 13px;
+    margin: 0px;
+    margin-left: 5px;
+    padding: 0px;
+    text-transform: none;
+}
+
+.hashTag {
+    color: #357396;
+    font-size: 13px;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    text-transform: none;
+}
+
+.description {
+    font-size: 16px;
+    text-align: center;
+    color: #444444;
+    margin: 0px;
+    margin-top: 15px;
+}
+
+.commentText {
+    font-size: 16px;
+    margin: 0px;
+}
+
+.postDescriptionContainer {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.feedbackPossibility {
+    font-size: 20px;
+    text-align: center;
+    color: #444444;
+    font-weight: 200 !important;
+}
+
+.feedbackPossibilityVote {
+    font-size: 20px;
+    color: #357396;
+    text-align: center;
+}
+
+.thin-font {
+    font-weight: 200 !important;
+}
+
+.ignore-capitalize {
+    text-transform: none;
+}
+
+.feedbackPossibilitiesCount {
+    color: #357396;
+}
+
+.subscribe-form-input-top {
+    margin-bottom: 0px;
+}
+
+
+/* Dialog */
+
+.custom-dialog {
+    width: 300px;
+}
+
+.custom-dialog-container {
+    width: 85%;
+}
+
+/* Custom Stylesheet for main.html */
+
+
+.full-height {
+    height: 100%;
+}
+
+.button-toolbar {
+    color: #357396;
+}
+
+.fa {
+    width: 30px;
+    text-align: left;
+}
+
+.headIcons {
+    text-align: center;
+    font-size: 130% !important;
+}
+
+.toolbar-icons {
+    margin-left: 20px;
+}
+
+.toolbar-icon {
+    margin: 0px;
+}
+
+.sign-up-section-div {
+    margin-top: 40px !important;
+}
+
+.sign-up-root-div {
+    background-color: #dfefef;
+    padding-bottom: 40px !important;
+}
+
+.main-section-div {
+    padding-bottom: 40px !important;
+}
+
+@media only screen and (min-width: 960px) {
+    .onboarding-right-side {
+        margin-left: 150px !important;
+    }
+}
+
+@media only screen and (max-width: 959px) {
+    .onboarding-right-side {
+        margin-left: 0px !important;
+    }
+}
+
+/** copied from materialize.css BEGIN **/
+
+.right {
+    float: right !important;
+}
+
+.center {
+    text-align: center;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: 1280px;
+    width: 90%;
+}
+
+@media only screen and (min-width: 601px) {
+    .container {
+        width: 85%;
+    }
+}
+
+@media only screen and (min-width: 993px) {
+    .container {
+        width: 70%;
+    }
+}
+
+.container .row {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.icon-block {
+    padding: 0 15px;
+}
+
+.icon-block .material-icons {
+    vertical-align: middle;
+    font-size: 80%;
+    margin-right: 15px;
+}
+
+/** copied from materialize.css END **/
+
+/* CSS BY IVO BEGIN */
+
+body {
+    letter-spacing: 1px;
+}
+
+img#logo {
+    width: 128px;
+    vertical-align: -6px;
+
+}
+
+@media only screen and (max-width: 400px) {
+
+    .present-photo {
+        background: url(img/assets/shoes-dark.jpg);
+        height: 300px;
+        background-repeat: no-repeat;
+        background-position: 50% 100% !important;
+        background-attachment: fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+    }
+}
+
+@media only screen and (max-width: 960px) {
+
+    .present-photo {
+        background: url(img/assets/shoes-dark.jpg);
+        height: 450px;
+        background-repeat: no-repeat;
+        background-position: 50% 100% !important;
+        background-attachment: fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+    }
+}
+
+@media only screen and (min-width: 961px) {
+
+    .present-photo {
+        background: url(img/assets/shoes-dark.jpg);
+        height: 450px;
+        background-repeat: no-repeat;
+        background-position: 50% 50% !important;
+        background-attachment: fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+    }
+}
+
+/*TEXTS*/
+
+.versuDefaultTtext {
+    color: #45505d;
+    font-size: 20px;
+    padding: 10px 5px 0 5px;
+    line-height: 1.5;
+}
+
+.app-quote-text {
+    color: white !important;
+    text-align: center !important;
+}
+
+h2 {
+    font-weight: 200 !important;
+}
+
+/*footer*/
+
+footer.page-footer {
+    background-color: #357396;
+    -webkit-box-shadow: inset 0px 0px 16px -4px rgba(45, 75, 92, 0.57);
+    -moz-box-shadow: inset 0px 0px 16px -4px rgba(45, 75, 92, 0.57);
+    box-shadow: inset 0px 0px 16px -4px rgba(45, 75, 92, 0.57);
+}
+
+footer.page-footer .footer-copyright a {
+    overflow: hidden;
+    height: 55px;
+    line-height: 50px;
+    color: #F8F8F8;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.footer-contact-link-h4 {
+    margin: 0px !important;
+    margin-left: 10px !important;
+}
+
+/* CSS BY IVO END */
+

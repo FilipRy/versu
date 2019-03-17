@@ -1,0 +1,473 @@
+<!--menu-->
+<md-toolbar style="box-shadow: 0 2px 5px 0 rgba(0,0,0,.16),0 2px 10px 0 rgba(0,0,0,.12);">
+    <div class="md-toolbar-tools">
+
+        <md-button class="md-icon-button" aria-label="Menu" hide-gt-sm>
+            <md-icon class="md-hue-3" md-svg-icon="img/icon/menu.svg" ng-click="toggleLeft()"></md-icon>
+        </md-button>
+
+        <div class="container">
+            <a id="logo-container" href="#/">
+                <img id="logo" src="img/assets/versu-logo-white.png" alt="logo">
+            </a>
+
+            <div class="right" layout="row" layout-align="center center">
+                <div ng-repeat="section in sections" hide-sm hide-xs>
+                    <md-button ng-href={{section.link}}>{{section.name}}</md-button>
+                </div>
+
+                <!-- login /log out buttons -->
+                <div hide-sm hide-xs>
+                    <md-button class="md-raised md-primary" ng-click="login()" ng-hide="isAuthenticated"
+                               ng-disabled="isLoadingUser"
+                               aria-label="Login">
+                        Login
+                    </md-button>
+
+                    <md-button class="md-icon-button" aria-label="Log out" ng-click="logout()"
+                               ng-hide="!isAuthenticated"
+                               ng-disabled="isLoadingUser">
+                        <md-icon md-svg-icon="img/icon/logout.svg"></md-icon>
+                </div>
+
+
+                <div class="toolbar-icons">
+                    <md-button ng-href="https://twitter.com/versuapp" target="_blank"
+                               class="md-icon-button launch" aria-label="twitter" style="margin: 0px;">
+                        <md-icon md-svg-icon="img/icon/twitter.svg"></md-icon>
+                    </md-button>
+                    <md-button ng-href="https://www.facebook.com/VersuApp/" target="_blank" style="margin: 0px;"
+                               aria-label="Facebook"
+                               class="md-icon-button launch">
+                        <md-icon md-svg-icon="img/icon/facebook.svg"></md-icon>
+                    </md-button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</md-toolbar>
+
+<!--  -->
+<md-sidenav class="md-sidenav-left" md-component-id="left" md-whiteframe="4">
+
+    <md-content>
+
+        <md-list flex>
+            <md-list-item class="md-2-line" ng-repeat="section in sections" ng-href={{section.link}}>
+                <div class="md-list-item-text" layout="column">
+                    <h3 class="md-headline">{{ section.name }}</h3>
+                </div>
+            </md-list-item>
+            <md-list-item class="md-2-line" ng-click="login()" ng-hide="isAuthenticated" ng-disabled="isLoadingUser">
+                <div class="md-list-item-text" layout="column">
+                    <h3 class="md-headline">Login</h3>
+                </div>
+            </md-list-item>
+
+            <md-list-item class="md-2-line" ng-click="logout()" ng-hide="!isAuthenticated" ng-disabled="isLoadingUser">
+                <div class="md-list-item-text" layout="column">
+                    <h3 class="md-headline">Log out</h3>
+                </div>
+            </md-list-item>
+
+        </md-list>
+
+
+    </md-content>
+
+</md-sidenav>
+
+<md-content layout="column" layout-align="space-around center" ng-disabled="!isAuthenticated">
+
+    <!-- Loading post placeholder -->
+    <div layout="column" layout-padding layout-align="center center" ng-hide="!isLoadingPost">
+        <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+        <h2 class=".md-title">Snap a dilemma and let the world decide</h2>
+    </div>
+
+    <div layout="column" layout-padding layout-align="center center" ng-hide="!postLoadingError">
+        <h2 class=".md-title">{{postErrorMessage}}</h2>
+    </div>
+
+
+    <div layout-align="space-around center" ng-hide="isLoadingPost || postLoadingError">
+
+        <div layout-align="space-around center">
+
+            <div layout="column" layout-align="space-around center" ng-hide="!isLoadingUser">
+                <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+                <h2 class=".md-title">Checking your login information</h2>
+            </div>
+
+            <div ng-hide="!isAuthenticated" layout-align="space-around center" layout="column">
+
+                <img class="avatar" ng-src="{{loggedInUser.profilePhotoURL}}"/>
+                <p class="md-subhead">{{loggedInUser.username}}</p>
+
+            </div>
+
+        </div>
+
+        <!-- post container -->
+        <div layout="row" layout-align="start start" layout-align-xs="start stretch" layout-xs="column"
+             ng-disabled="!isAuthenticated">
+
+            <!-- post photos -->
+            <div layout="column" layout-align="center center">
+
+                <img class="photo" ng-src="{{post.photos[0].path}}"/>
+
+                <img class="photo" ng-show="post.photos.length == 2" ng-src="{{post.photos[1].path}}"/>
+
+
+                <!-- feedback possibilities -->
+                <div layout="column" layout-align="center stretch">
+
+                    <div ng-repeat="possibility in post.feedbackPossibilities" layout="row" layout-align="center end">
+                        <md-button class="ignore-capitalize"
+                                   ng-class="(post.myPostFeedback.name == possibility) ? 'feedbackPossibilityVote' : 'feedbackPossibility'"
+                                   ng-click="vote($index)">
+                            {{post.feedbackPossibilities[$index]}}
+                        </md-button>
+                        <md-button class="md-fab md-mini md-primary" aria-label="Voters"
+                                   ng-click="displayVoters($index)"
+                                   ng-hide="post.myPostFeedback == null">
+                            {{post.possibilitiesVotesCount[$index]}}
+                        </md-button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!--right side of post - containing post owner header and comments-->
+            <div layout="column" class="postPropertiesContainer">
+
+                <!-- post owner container -->
+                <div id="nameBox" layout="row" layout-align="start start">
+
+                    <img class="avatar" ng-src="{{post.owner.profilePhotoURL}}"
+                         alt="Avatar">
+
+                    <!-- post owner name and post time + location -->
+                    <div class="postOwnerNameContainer" layout="column" layout-align="start start">
+                        <!--<p class="name">{{post.owner.username}}</p>-->
+                        <md-button class="name" ng-click="displayRedirectionToApp('user', post.owner.username)">
+                            {{post.owner.username}}
+                        </md-button>
+
+                        <div layout="row" layout-align="start center">
+                            <p class="time">{{postTime}}</p>
+                            <md-button class="location" ng-show="post.location != undefined"
+                                       ng-click="displayRedirectionToApp('location', post.location.name)">
+                                {{post.location.name}}
+                            </md-button>
+                            <!--<p class="location"> {{post.location.name}}</p>-->
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+                <!-- post description container -->
+                <div class="postDescriptionContainer" layout="column" layout-align="center center">
+                    <!--<p class="hashTag" ng-click="displayRedirectionToApp('hashtag', '')">{{possibiliesHashtag}}</p>-->
+                    <md-button class="hashTag"
+                               ng-click="displayRedirectionToApp('hashtag', possibiliesHashtag)">
+                        {{possibiliesHashtag}}
+                    </md-button>
+                    <p class="description">{{post.description}}</p>
+                </div>
+
+                <md-divider></md-divider>
+
+                <div layout="column" layout-align="center center">
+                    <md-button class="thin-font" ng-hide="loadingComments || comments.length==0" ng-click="loadMoreComments()">
+                        Load more
+                    </md-button>
+
+                    <md-progress-circular class="md-hue-2" md-diameter="20px" style="margin-top: 6px;"
+                                          ng-hide="!loadingComments"></md-progress-circular>
+                </div>
+
+                <!-- comments container -->
+                <div layout="column" class="commentsContainer">
+
+                    <md-list>
+                        <md-list-item class="md-3-line" ng-repeat="comment in comments" ng-click="displayRedirectionToApp('user', comment.owner.username)">
+                            <img ng-src="{{comment.owner.profilePhotoURL}}" class="md-avatar"
+                                 alt="{{comment.owner.username}}">
+                            <div class="md-list-item-text" layout="column">
+                                <h4 class="name">{{ comment.owner.username }}</h4>
+                                <p class="md-subhead">{{comment.content}}</p>
+                                <p class="time">{{ comment.age }}</p>
+                            </div>
+
+                            <md-button class="md-icon-button" aria-label="Remove"
+                                       ng-show="comment.owner.id == loggedInUser.id"
+                                       ng-click="removeComment($index)">
+                                <md-icon md-svg-icon="img/icon/close-circle.svg"></md-icon>
+                            </md-button>
+
+                        </md-list-item>
+
+                    </md-list>
+
+
+                    <form layout="row" layout-align="end stretch" ng-cloak name="commentForm">
+
+                        <div flex="80" emoji-form>
+                            <md-input-container md-no-float="" class="md-block" style="margin: 0px;">
+                                    <textarea class="" ng-model="myNewComment.content" placeholder="Type your comment"
+                                              name="userComment"
+                                              required
+                                              minlength="2" maxlength="255">
+                                        </textarea>
+                            </md-input-container>
+
+                        </div>
+
+                        <div layout="row">
+                            <md-button class="md-icon-button" aria-label="Submit"
+                                       ng-disabled="commentForm.$invalid" style="margin-right: 0px;"
+                                       ng-click="createComment()"
+                                       ng-disabled="addingComment"
+                            >
+                                <md-icon md-svg-icon="img/icon/send.svg" ng-hide="addingComment"></md-icon>
+
+                                <md-progress-circular class="md-hue-2" ng-hide="!addingComment"
+                                                      md-diameter="25px">
+
+                                </md-progress-circular>
+
+                            </md-button>
+
+                        </div>
+
+                    </form>
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</md-content>
+
+
+<script type="text/ng-template" id="registrationdialog.tmpl.html">
+    <md-dialog aria-label="Registration" class="custom-dialog">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Registration</h2>
+            </div>
+        </md-toolbar>
+
+        <md-dialog-content>
+            <form ng-cloak name="registrationForm">
+                <div class="md-dialog-content">
+
+                    <md-input-container class="md-block">
+                        <label>Username</label>
+                        <input required ng-model="user.username" name="username" minlength="3" maxlength="100">
+                        <div ng-messages="registrationForm.username.$error" role="alert">
+                            <div ng-message-exp="['required', 'minlength', 'maxlength']">
+                                Your username must be between 3 and 100 characters long.
+                            </div>
+                        </div>
+                    </md-input-container>
+
+                    <md-input-container class="md-block">
+                        <label>Email</label>
+                        <input required type="email" name="email" ng-model="user.email"
+                               minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/"/>
+                        <div ng-messages="registrationForm.email.$error" role="alert">
+                            <div ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']">
+                                Your email must be between 10 and 100 characters long and look like an e-mail
+                                address.
+                            </div>
+                        </div>
+                    </md-input-container>
+
+                </div>
+
+            </form>
+
+
+        </md-dialog-content>
+
+        <md-dialog-actions layout="row">
+            <md-button class="md-raised md-warn" ng-click="cancel()">
+                Cancel
+            </md-button>
+            <md-button class="md-raised md-primary" ng-disabled="registrationForm.$invalid"
+                       ng-click="register(user)">
+                Register
+            </md-button>
+        </md-dialog-actions>
+    </md-dialog>
+</script>
+
+
+<script type="text/ng-template" id="gotoappdialog.tmpl.html">
+    <md-dialog aria-label="Go to app">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Go to app</h2>
+            </div>
+        </md-toolbar>
+
+        <md-dialog-content>
+            <div class="md-dialog-content" layout="column" layout-align="center center">
+
+                <p class="md-body1">{{content}}</p>
+
+                <md-button class="md-primary" ng-href="/#/" target="_blank">Go to app</md-button>
+
+            </div>
+
+
+        </md-dialog-content>
+
+        <md-dialog-actions layout="row">
+            <md-button class="md-raised md-primary" ng-click="cancel()">
+                Close
+            </md-button>
+        </md-dialog-actions>
+
+    </md-dialog>
+</script>
+
+
+<script type="text/ng-template" id="welcomedialog.tmpl.html">
+    <md-dialog class="custom-dialog" aria-label="Welcome">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Introduce yourself</h2>
+            </div>
+        </md-toolbar>
+
+        <md-dialog-content>
+
+            <form ng-cloak name="welcomeForm">
+                <div class="md-dialog-content" layout="column" layout-align="center stretch">
+
+                    <md-input-container class="md-block">
+                        <label>Tell us your name</label>
+                        <input required ng-model="username" name="username"
+                               minlength="3" maxlength="100">
+                        <div ng-messages="welcomeForm.username.$error" role="alert">
+                            <div ng-message-exp="['required', 'minlength', 'maxlength']">
+                                Your username must be between 3 and 100 characters long.
+                            </div>
+                        </div>
+                    </md-input-container>
+
+
+                    <md-button class="md-raised md-primary" ng-disabled="welcomeForm.$invalid"
+                               ng-click="continueWithName()">
+                        Continue with name
+                    </md-button>
+
+                    <div layout="row" layout-align="center center">
+                        <p class="md-body-1">OR</p>
+                    </div>
+                    <md-button class="md-raised md-primary" ng-click="continueWithFB()">
+                        Continue with Facebook
+                    </md-button>
+
+                </div>
+            </form>
+        </md-dialog-content>
+
+    </md-dialog>
+</script>
+
+
+<script type="text/ng-template" id="votersdialog.tmpl.html">
+
+    <md-dialog aria-label="Voters">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Voters</h2>
+            </div>
+        </md-toolbar>
+
+
+        <md-dialog-content>
+            <div class="md-dialog-content custom-dialog" style="padding: 0px;">
+
+                <md-tabs md-dynamic-height md-border-bottom>
+                    <md-tab label="{{poss1Name}} ({{poss1Count}})">
+                        <md-content class="md-padding">
+
+                            <div infinite-scroll='votersLeftTabFact.nextPage()'
+                                 infinite-scroll-disabled='votersLeftTabFact.busy'
+                                 infinite-scroll-distance='1'>
+                                <div layout="row" layout-align="start center"
+                                     ng-repeat='item in votersLeftTabFact.items'>
+                                    <img class="avatarMini" ng-src="{{item.owner.profilePhotoURL}}"
+                                         ng-click="displayRedirectionToApp('user', item.owner.username)"/>
+                                    <md-button class="name"
+                                               ng-click="displayRedirectionToApp('user', item.owner.username)">
+                                        {{item.owner.username}}
+                                    </md-button>
+                                    <!--<p>{{item.owner.username}}</p>-->
+                                </div>
+                                <div layout="row" layout-align="center center" ng-show='votersLeftTabFact.busy'>
+                                    <md-progress-circular class="md-hue-2"
+                                                          md-diameter="20px"></md-progress-circular>
+                                </div>
+                            </div>
+
+
+                        </md-content>
+                    </md-tab>
+                    <md-tab label="{{poss2Name}} ({{poss2Count}})">
+                        <md-content class="md-padding">
+
+                            <div infinite-scroll='votersRightTabFact.nextPage()'
+                                 infinite-scroll-disabled='votersRightTabFact.busy'
+                                 infinite-scroll-distance='1'>
+                                <div layout="row" layout-align="start center"
+                                     ng-repeat='item in votersRightTabFact.items'>
+                                    <img class="avatarMini" ng-src="{{item.owner.profilePhotoURL}}"
+                                         ng-click="displayRedirectionToApp('user', item.owner.username)"/>
+                                    <md-button class="name"
+                                               ng-click="displayRedirectionToApp('user', item.owner.username)">
+                                        {{item.owner.username}}
+                                    </md-button>
+                                </div>
+                                <div layout-align="center center" ng-show='votersRightTabFact.busy'>
+                                    <md-progress-circular class="md-hue-2"
+                                                          md-diameter="20px"></md-progress-circular>
+                                </div>
+                            </div>
+
+
+                        </md-content>
+                    </md-tab>
+                </md-tabs>
+
+
+            </div>
+
+        </md-dialog-content>
+
+        <md-dialog-actions layout="row">
+            <md-button class="md-raised md-primary"
+                       ng-click="cancel()">
+                Close
+            </md-button>
+        </md-dialog-actions>
+
+    </md-dialog>
+
+</script>
