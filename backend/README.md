@@ -54,7 +54,7 @@ docker-compose up
 ```
 
 ## Documentation
-Open your browser and enter the following url http://localhost:8081/swagger-ui.html#/. It's a Swagger UI interface, documentating the used endpoints. All api endpoints (beside singup-controller) are secured by spring security. If you want to play around with the endpoints you have to authorize yourself:
+When the application is running open your browser and enter the following url http://localhost:8081/swagger-ui.html#/. It's a Swagger UI interface, documentating the used endpoints. All api endpoints (beside singup-controller) are secured by spring security. If you want to play around with the endpoints you have to authorize yourself:
 1. Create a user account via the `/singup` endpoint of `singup-controller`.
 2. Press the authorize button and scroll down to oauth2 (OAuth2, password) authorization.
 3. Enter the username and password you chose at step 1). This will return your access token.
