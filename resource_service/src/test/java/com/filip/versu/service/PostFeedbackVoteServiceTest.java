@@ -1,6 +1,5 @@
 package com.filip.versu.service;
 
-import com.filip.versu.VersuApplication;
 import com.filip.versu.entity.model.Following;
 import com.filip.versu.entity.model.Post;
 import com.filip.versu.entity.model.PostFeedbackVote;
@@ -9,18 +8,18 @@ import com.filip.versu.exception.ForbiddenException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertTrue;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {VersuApplication.class})
-@WebAppConfiguration
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(locations = "classpath:application-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PostFeedbackVoteServiceTest {
 
@@ -50,8 +49,8 @@ public class PostFeedbackVoteServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
         PostFeedbackVote postFeedbackVote = PostServiceTest.createVote(post.getPostFeedbackPossibilities().get(0), viewer);
@@ -81,8 +80,8 @@ public class PostFeedbackVoteServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
         PostFeedbackVote postFeedbackVote = PostServiceTest.createVote(post.getPostFeedbackPossibilities().get(0), viewer);
@@ -130,8 +129,8 @@ public class PostFeedbackVoteServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
         post.setChosenFeedbackPossibility(post.getPostFeedbackPossibilities().get(0));
@@ -159,8 +158,8 @@ public class PostFeedbackVoteServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
         PostFeedbackVote postFeedbackVote = PostServiceTest.createVote(post.getPostFeedbackPossibilities().get(0), viewer);
@@ -193,8 +192,8 @@ public class PostFeedbackVoteServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
         PostFeedbackVote postFeedbackVote = PostServiceTest.createVote(post.getPostFeedbackPossibilities().get(0), viewer);
@@ -206,7 +205,7 @@ public class PostFeedbackVoteServiceTest {
         postService.delete(post.getId(), owner);
 
 
-        Page<PostFeedbackVote> postFeedbackPage = postFeedbackVoteService.findByUserPaging(viewer.getId(), new PageRequest(0, 20), viewer, -1l);
+        Page<PostFeedbackVote> postFeedbackPage = postFeedbackVoteService.findByUserPaging(viewer.getId(), PageRequest.of(0, 20), viewer, -1l);
 
         //postFeedback should be deleted
         assertTrue(postFeedbackPage != null);
@@ -223,12 +222,12 @@ public class PostFeedbackVoteServiceTest {
         User viewer = UserServiceTest.createUser("viewer1");
         viewer = userService.create(viewer, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.publicc);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.PUBLICC);
         post = postService.create(post, owner);
 
-        Post post2 = PostServiceTest.createShoppingItem(owner, null);
-        post2.setAccessType(Post.AccessType.publicc);
+        Post post2 = PostServiceTest.createPost(owner, null);
+        post2.setAccessType(Post.AccessType.PUBLICC);
         post2 = postService.create(post2, owner);
 
 
@@ -248,7 +247,7 @@ public class PostFeedbackVoteServiceTest {
         ////creating second feedback - OK
         postFeedbackVote1 = postFeedbackVoteService.create(postFeedbackVote1, viewer);
 
-        Page<PostFeedbackVote> postFeedbackPage = postFeedbackVoteService.findByUserPaging(viewer.getId(), new PageRequest(0, 20), viewer, null);
+        Page<PostFeedbackVote> postFeedbackPage = postFeedbackVoteService.findByUserPaging(viewer.getId(), PageRequest.of(0, 20), viewer, null);
 
         assertTrue(postFeedbackPage != null);
         assertTrue(postFeedbackPage.getContent() != null);

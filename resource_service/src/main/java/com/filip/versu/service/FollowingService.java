@@ -18,7 +18,7 @@ public interface FollowingService extends CrudAuthService<Following, Long>, User
     public Following getFollowingByCreatorAndTarget(User creator, User target, User requestor);
 
     /**
-     * Returns the followers of user
+     * Returns the FOLLOWERS of user
      * @param userID
      * @param lastLoadedId
      *@param pageable  @return

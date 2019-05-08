@@ -1,6 +1,7 @@
 package com.filip.versu.service.impl;
 
 import com.filip.versu.entity.model.Following;
+import com.filip.versu.entity.model.Notification;
 import com.filip.versu.entity.model.User;
 import com.filip.versu.exception.*;
 import com.filip.versu.repository.FollowingRepository;
@@ -51,9 +52,12 @@ public class FollowingServiceImpl extends AbsCrudServiceImpl<Following, Long, Fo
             throw new EntityExistsException(ExceptionMessages.EntityExistsException.OBJECT_EXISTS);
         }
 
-        notificationService.createForFollowing(entity);
+        entity = super.create(entity);
 
-        return super.create(entity);
+        Notification notification = new Notification(entity.getTarget(), entity.getId(), Notification.NotificationType.following, entity.getCreator());
+        notificationService.createAsync(notification);
+
+        return entity;
     }
 
     @Override
@@ -96,7 +100,7 @@ public class FollowingServiceImpl extends AbsCrudServiceImpl<Following, Long, Fo
             throw new UnauthorizedException(ExceptionMessages.UnauthorizedException.UNAUTHORIZED);
         }
 
-        notificationService.removeByFollowing(entity);
+        notificationService.removeByTypeAndId(Notification.NotificationType.following, entity.getId());
 
         return super.delete(entityID);
 
@@ -179,7 +183,7 @@ public class FollowingServiceImpl extends AbsCrudServiceImpl<Following, Long, Fo
             throw new UnauthorizedException(ExceptionMessages.UnauthorizedException.UNAUTHORIZED);
         }
 
-        Pageable pageable = new PageRequest(0, 50);
+        Pageable pageable = PageRequest.of(0, 50);
         Page<Following> followings = null;
 
         do {
@@ -192,7 +196,7 @@ public class FollowingServiceImpl extends AbsCrudServiceImpl<Following, Long, Fo
         } while (followings.hasNext());
 
 
-        pageable = new PageRequest(0, 50);
+        pageable = PageRequest.of(0, 50);
         followings = null;
 
         do {
@@ -212,7 +216,7 @@ public class FollowingServiceImpl extends AbsCrudServiceImpl<Following, Long, Fo
         Following following = get(entityID);
 
         if(following != null) {
-            notificationService.removeByFollowing(following);
+            notificationService.removeByTypeAndId(Notification.NotificationType.following, following.getId());
         }
 
         return super.delete(entityID);

@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-
+import java.util.Optional;
 
 
 @Service
@@ -37,7 +37,12 @@ public abstract class AbsCrudServiceImpl<T extends AbsBaseEntity<K>, K extends S
         if(id == null) {
             return null;
         }
-        return repository.findOne(id);
+        Optional<T> returned =  repository.findById(id);
+        if (returned != null && returned.isPresent()) {
+            return returned.get();
+        } else {
+            return null;
+        }
     }
 
     @Override

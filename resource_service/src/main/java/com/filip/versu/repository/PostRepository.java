@@ -18,15 +18,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     public static final String POSSIBLITIES_SEPARATOR = "VS";
 
 
-    public static final String POST_VISIBILITY_QUERY = "((p.accessType = Post$AccessType.specific and :viewer member of p.viewers)" +
-            " or (p.accessType = Post$AccessType.followers and exists(select f from Following f where f.creator = :viewer and f.target = p.owner))" +
-            " or (p.accessType = Post$AccessType.onlyOwner and p.owner = :viewer)" +
-            " or (p.accessType = Post$AccessType.publicc)" +
+    public static final String POST_VISIBILITY_QUERY = "((p.accessType = com.filip.versu.entity.model.Post$AccessType.SPECIFIC and :viewer member of p.viewers)" +
+            " or (p.accessType = com.filip.versu.entity.model.Post$AccessType.FOLLOWERS and exists(select f from Following f where f.creator = :viewer and f.target = p.owner))" +
+            " or (p.accessType = com.filip.versu.entity.model.Post$AccessType.ONLY_OWNER and p.owner = :viewer)" +
+            " or (p.accessType = com.filip.versu.entity.model.Post$AccessType.PUBLICC)" +
             " or p.owner = :viewer)";
 
-    public static final String POST_VISIBILITY_TIMELINE_QUERY = "((p.accessType = Post$AccessType.specific and :viewer member of p.viewers)" +
-            " or ((p.accessType = Post$AccessType.followers or p.accessType = Post$AccessType.publicc) and exists(select f from Following f where f.creator = :viewer and f.target = p.owner))" +
-            " or (p.accessType = Post$AccessType.onlyOwner and p.owner = :viewer)" +
+    public static final String POST_VISIBILITY_TIMELINE_QUERY = "((p.accessType = com.filip.versu.entity.model.Post$AccessType.SPECIFIC and :viewer member of p.viewers)" +
+            " or ((p.accessType = com.filip.versu.entity.model.Post$AccessType.FOLLOWERS or p.accessType = com.filip.versu.entity.model.Post$AccessType.PUBLICC) and exists(select f from Following f where f.creator = :viewer and f.target = p.owner))" +
+            " or (p.accessType = com.filip.versu.entity.model.Post$AccessType.ONLY_OWNER and p.owner = :viewer)" +
             " or p.owner = :viewer)";
 
 
@@ -119,12 +119,33 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     public List<String> searchVSPossibilitiesLike(@Param("pattern") String pattern);
 
 
+    // TODO this method worked in spring 1.3.7 but doesnt work in 2.1.3
+//    @Query("select distinct p from PostFeedbackPossibility po INNER JOIN po.post p " +
+//            "where (upper(po.name) = upper(:possA) or exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post)) " +
+//            "and "+ POST_VISIBILITY_QUERY +" " +
+//            "order by (CASE WHEN upper(po.name) = upper(:possA) and exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post) THEN 2 " +
+//            "WHEN upper(po.name) = upper(:possA) or exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post) THEN 1 ELSE 0 END) desc, p.publishTime desc")
+//    public Page<Post> findPostsByFeedbackPossibilitesName(@Param("possA") String possA,
+//                                                          @Param("possB") String possB,
+//                                                          @Param("viewer") User viewer,
+//                                                          Pageable pageable);
+
     @Query("select distinct p from PostFeedbackPossibility po INNER JOIN po.post p " +
-            "where (upper(po.name) = upper(:possA) or exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post)) " +
+            "where (upper(po.name) = upper(:possA) and exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post)) " +
             "and "+ POST_VISIBILITY_QUERY +" " +
-            "order by (CASE WHEN upper(po.name) = upper(:possA) and exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post) THEN 2 " +
-            "WHEN upper(po.name) = upper(:possA) or exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post) THEN 1 ELSE 0 END) desc, p.publishTime desc")
-    public Page<Post> findPostsByFeedbackPossibilitesName(@Param("possA") String possA,
+            "order by p.publishTime desc")
+    public Page<Post> findPostsHavingBothFeedbackPossibilitesName(@Param("possA") String possA,
+                                                                  @Param("possB") String possB,
+                                                                  @Param("viewer") User viewer,
+                                                                  Pageable pageable);
+
+
+    @Query("select distinct p from PostFeedbackPossibility po INNER JOIN po.post p " +
+            "where ( (upper(po.name) = upper(:possA) and not exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.post = po.post)) or" +
+            " ( upper(po.name) <> upper(:possA) and exists (select poB from PostFeedbackPossibility poB where upper(poB.name) = upper(:possB) and poB.name <> po.name  and poB.post = po.post) ) ) " +
+            "and "+ POST_VISIBILITY_QUERY +" " +
+            "order by p.publishTime desc")
+    public Page<Post> findPostsByXORFeedbackPossibilitesName(@Param("possA") String possA,
                                                           @Param("possB") String possB,
                                                           @Param("viewer") User viewer,
                                                           Pageable pageable);

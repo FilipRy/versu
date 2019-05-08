@@ -1,7 +1,6 @@
 package com.filip.versu.repository;
 
 
-import com.filip.versu.entity.model.ExternalAccount;
 import com.filip.versu.entity.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +15,6 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Query("select u from User u where exists" +
-            "(select e from ExternalAccount e where e.appUser = u and e.provider = :provider and e.externalUserId = :externalAccountId)")
-    public List<User> findByExternalAccountID(@Param("externalAccountId") String externalAccountId, @Param("provider") ExternalAccount.ExternalAccountProvider provider);
 
     public User findOneByUsername(String username);
 

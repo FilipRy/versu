@@ -20,7 +20,7 @@ public class UserDTO extends AbsBaseEntityDTO<Long> {
 
     public String quote;
 
-    public LocationDTO location;
+    public GoogleLocationDTO location;
 
     public String accessToken;//this is an access token used for user registered with name through web.
 
@@ -37,7 +37,7 @@ public class UserDTO extends AbsBaseEntityDTO<Long> {
         this.profilePhotoURL = other.getProfilePhotoURL();
         this.quote = other.getQuote();
         if(other.getLocation() != null) {
-            location = new LocationDTO(other.getLocation());
+            location = new GoogleLocationDTO(other.getLocation());
         }
     }
 

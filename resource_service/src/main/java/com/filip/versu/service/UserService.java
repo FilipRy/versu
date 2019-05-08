@@ -1,25 +1,18 @@
 package com.filip.versu.service;
 
-import com.filip.versu.entity.model.ExternalAccount;
 import com.filip.versu.entity.model.User;
 import com.filip.versu.service.abs.CrudAuthService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 
-public interface UserService extends CrudAuthService<User, Long> {
+public interface UserService extends CrudAuthService<User, Long>, UserDetailsService {
 
 
     public void uploadProfilePhoto(User user);
-
-    /**
-     * This method is invoked only by AbsAuthController to authenticate user.
-     * @param
-     * @return
-     */
-    public User findOnyByExternalAccountId(String externalId, ExternalAccount.ExternalAccountProvider provider);
 
     public User findOneByUsername(String name);
 

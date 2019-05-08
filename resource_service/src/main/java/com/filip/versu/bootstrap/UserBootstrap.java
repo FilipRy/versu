@@ -1,10 +1,7 @@
 package com.filip.versu.bootstrap;
 
-import com.filip.versu.entity.dto.UserDTO;
 import com.filip.versu.entity.model.*;
 import com.filip.versu.repository.CommentRepository;
-import com.filip.versu.security.ExternalUserDTO;
-import com.filip.versu.security.FacebookConnector;
 import com.filip.versu.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -18,9 +15,6 @@ import java.util.List;
 
 @Component
 public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent> {
-
-    @Autowired
-    private FacebookConnector facebookConnector;
 
     @Autowired
     private UserService userService;
@@ -44,6 +38,7 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
     private CommentRepository commentRepository;
 
 
+
     @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
@@ -52,8 +47,7 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
 
         commentRepository.setNamesToUtf8Mb4();//this is a hack to set name, otherwise emojis cannot be saved
 
-
-        if (ddlProperty.contains("create")) {
+        if (ddlProperty.contains("create") ) {
             init();
         }
 
@@ -62,36 +56,27 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
 
 
     private void init() {
-        List<ExternalUserDTO> facebookTestUsers = facebookConnector.retrieveAppExternalUsers(10);
 
         List<User> registeredUsers = new ArrayList<>();
 
         String nameFilip = "Filip Rydzi";
-
-        ExternalAccount externalAccount = new ExternalAccount();
-        externalAccount.setProvider(ExternalAccount.ExternalAccountProvider.FACEBOOK);
-        externalAccount.setExternalUserId("10208494940242628");//this is my facebook ID
 
         User userFilip = new User();
         userFilip.setUsername(nameFilip);
         userFilip.setPassword("000" + nameFilip);
         userFilip.setEmail(nameFilip + "@" + nameFilip + ".com");
 
-        externalAccount.setAppUser(userFilip);
-        userFilip.getExternalAccounts().add(externalAccount);
-
         userFilip.setProfilePhotoURL("https://s3-eu-west-1.amazonaws.com/dress-me-test1/profile_pics/7e2173e7502e4c3f35312b5379039e0d39207754.jpg");
         userFilip = userService.create(userFilip, userFilip);
 
-        for (ExternalUserDTO externalUser : facebookTestUsers) {
-            User user = new User(externalUser);
-            String username = user.getUsername();
-            int middleNameBegin = username.indexOf(' ');//removing the middle name
-            int middleNameEnd = username.indexOf(' ', middleNameBegin + 1);
-            if (middleNameEnd != -1) {
-                username = username.substring(0, middleNameBegin) + username.substring(middleNameEnd);
-            }
+        String usernames[] = { "John Walker", "Alex Green", "Victoria Malkovich", "Emily Tomato", "Jeny White", "George High", "Ema Tavares", "Rome Johnson", "Robert Geisen", "Simona Lee" };
+
+        for (String username: usernames) {
+            User user = new User();
             user.setUsername(username);
+            user.setEmail(username.toLowerCase().replaceAll(" ", "")+"@test.com");
+            user.setPassword("123456789");
+            user.setQuote("Im the best");
             user = userService.create(user, user);
             registeredUsers.add(user);
         }
@@ -155,8 +140,8 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
                 post.getPhotos().get(0).setPath(urls[urlIndex++]);
             }
 
-            post.setSecretUrl("generate me");//forcing to generate an url
-            post.setAccessType(Post.AccessType.publicc);
+//            post.setSecretUrl("generate me");//forcing to generate an url
+            post.setAccessType(Post.AccessType.PUBLICC);
 
             PostFeedbackPossibility possibility1 = new PostFeedbackPossibility();
             possibility1.setName(possibilities[i * 2]);
@@ -172,14 +157,9 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
             post.setDescription(titles[i] + "_ " + j);
 
             if (i == 1) {
-                PostLocation postLocation = new PostLocation();
-                postLocation.setGoogleID("ChIJl2HKCjaJbEcRaEOI_YKbH2M");
                 post.setOwner(userFilip);
-                post.setLocation(postLocation);
-                filipsPost = post;
                 post = postService.create(post, userFilip);
             } else {
-                post.setLocation(null);
                 post = postService.create(post, user);
             }
 
@@ -189,28 +169,28 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
 
         Post postToVote = posts.get(0);
 
-        for (int i = 0; i < 40; i++) {
-            String name = "name_" + i;
-            User user = createAnonymUser(postToVote.getSecretUrl(), name);
-
-            user = userService.create(user, user);
-
-            user.setSecretUrl(postToVote.getSecretUrl());
-            user.setUserRole(User.UserRole.USER_WITH_LINK);
-
-            PostFeedbackVote postFeedbackVote = new PostFeedbackVote();
-            postFeedbackVote.setPostFeedbackPossibility(postToVote.getPostFeedbackPossibilities().get(0));
-            postFeedbackVote.setOwner(user);
-
-            Comment comment = new Comment();
-            comment.setOwner(user);
-            comment.setPost(postToVote);
-            comment.setContent("this is beautiful, I am voting for " + postToVote.getPostFeedbackPossibilities().get(0).getName());
-
-            postFeedbackVote = postFeedbackVoteService.create(postFeedbackVote, user);
-
-            comment = commentService.create(comment, user);
-        }
+//        for (int i = 0; i < 40; i++) {
+//            String name = "name_" + i;
+//            User user = createAnonymUser(postToVote.getSecretUrl(), name);
+//
+//            user = userService.create(user, user);
+//
+//            user.setSecretUrl(postToVote.getSecretUrl());
+//            user.setUserRole(User.UserRole.USER_WITH_LINK);
+//
+//            PostFeedbackVote postFeedbackVote = new PostFeedbackVote();
+//            postFeedbackVote.setPostFeedbackPossibility(postToVote.getPostFeedbackPossibilities().get(0));
+//            postFeedbackVote.setOwner(user);
+//
+//            Comment comment = new Comment();
+//            comment.setOwner(user);
+//            comment.setPost(postToVote);
+//            comment.setContent("this is beautiful, I am voting for " + postToVote.getPostFeedbackPossibilities().get(0).getName());
+//
+//            postFeedbackVote = postFeedbackVoteService.create(postFeedbackVote, user);
+//
+//            comment = commentService.create(comment, user);
+//        }
 
     }
 
@@ -232,21 +212,24 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
         possibility2.setPost(post);
         possibility2.setName("love");
 
-        post.getPostFeedbackPossibilities().add(possibility1);
-        post.getPostFeedbackPossibilities().add(possibility2);
+        List<PostFeedbackPossibility> postFeedbackPossibilities = new ArrayList<>();
+        postFeedbackPossibilities.add(possibility1);
+        postFeedbackPossibilities.add(possibility2);
+
+        post.setPostFeedbackPossibilities(postFeedbackPossibilities);
 
         post.setOwner(owner);
-        post.setAccessType(Post.AccessType.specific);
+        post.setAccessType(Post.AccessType.SPECIFIC);
         post.setPhotos(photos);
         post.setTimer(timer);
         post.setDescription("some desc");
 
-        PostLocation location = new PostLocation();
+        GoogleLocation location = new GoogleLocation();
         location.setGoogleID("ChIJhT-9kj-JbEcRFjPcvf5V47s");
         location.setLatitude(48.14050109999999);
         location.setLongitude(17.1213257);
 
-        post.setLocation(location);
+        post.setLocation(null);
 
         if (viewers != null) {
             post.setViewers(viewers);
@@ -273,32 +256,32 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
     }
 
 
-    /**
-     * Precondition: secretUrl must be associated with a post.
-     *
-     * @param secretUrl
-     * @param username
-     * @return
-     */
-    public static User createAnonymUser(String secretUrl, String username) {
-
-        UserDTO userDTO = new UserDTO();
-        userDTO.username = username;
-        userDTO.email = username + "anonym@mail.com";
-        userDTO.profilePhotoURL = "https://pbs.twimg.com/profile_images/739247958340698114/fVKY9fOv.jpg";
-
-        ExternalUserDTO externalUserDTO = new ExternalUserDTO();
-        externalUserDTO.accountProvider = ExternalAccount.ExternalAccountProvider.ANONYM_NAME;
-        externalUserDTO.id = secretUrl + "_" + username;
-
-        ExternalAccount externalAccount = new ExternalAccount(externalUserDTO);
-
-        User user = new User(userDTO);
-        user.getExternalAccounts().add(externalAccount);
-        externalAccount.setAppUser(user);
-
-        return user;
-
-    }
+//    /**
+//     * Precondition: secretUrl must be associated with a post.
+//     *
+//     * @param secretUrl
+//     * @param username
+//     * @return
+//     */
+//    public static User createAnonymUser(String secretUrl, String username) {
+//
+//        UserDTO userDTO = new UserDTO();
+//        userDTO.username = username;
+//        userDTO.email = username + "anonym@mail.com";
+//        userDTO.profilePhotoURL = "https://pixel.nymag.com/imgs/fashion/daily/2016/04/06/06-emily-ratajkowski.w330.h412.jpg";
+//
+//        ExternalUserDTO externalUserDTO = new ExternalUserDTO();
+//        externalUserDTO.accountProvider = ExternalAccount.ExternalAccountProvider.ANONYM_NAME;
+//        externalUserDTO.id = secretUrl + "_" + username;
+//
+//        ExternalAccount externalAccount = new ExternalAccount(externalUserDTO);
+//
+//        User user = new User(userDTO);
+//        user.getExternalAccounts().add(externalAccount);
+//        externalAccount.setAppUser(user);
+//
+//        return user;
+//
+//    }
 
 }

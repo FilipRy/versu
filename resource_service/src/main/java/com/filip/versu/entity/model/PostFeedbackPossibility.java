@@ -28,9 +28,9 @@ public class PostFeedbackPossibility extends AbsBaseEntity<Long> {
     /**
      * How many people voted for this possibility
      */
+    @Transient
     @Getter
     @Setter
-    @Transient
     private Integer count;
 
     @Getter
@@ -48,6 +48,7 @@ public class PostFeedbackPossibility extends AbsBaseEntity<Long> {
     private boolean isDeleted;
 
     public PostFeedbackPossibility() {
+        super();
     }
 
     public PostFeedbackPossibility(PostFeedbackPossibilityDTO other, boolean calledFromPost) {

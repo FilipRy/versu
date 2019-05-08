@@ -21,7 +21,7 @@ public class PostDTO extends AbsBaseEntityWithOwnerDTO<Long> {
      */
     public Post.Timer timer;
 
-    public LocationDTO location;
+    public GoogleLocationDTO location;
 
     public List<PostPhotoDTO> photos;
 
@@ -30,8 +30,6 @@ public class PostDTO extends AbsBaseEntityWithOwnerDTO<Long> {
     public List<UserDTO> viewers;
 
     public PostFeedbackVoteDTO myPostFeedback;
-
-    public FavouriteDTO myFavourite;
 
     /**
      * This is a list of the last two comments given on the shopping item.
@@ -59,7 +57,7 @@ public class PostDTO extends AbsBaseEntityWithOwnerDTO<Long> {
         this.timer = other.getTimer();
         this.secretUrl = other.getSecretUrl();
         if(other.getLocation() != null) {
-            this.location = new LocationDTO(other.getLocation());
+            this.location = new GoogleLocationDTO(other.getLocation());
         }
         this.photos = new ArrayList<>();
 
@@ -86,13 +84,6 @@ public class PostDTO extends AbsBaseEntityWithOwnerDTO<Long> {
             for(User user: other.getViewers()) {
                 viewers.add(new UserDTO(user));
             }
-        }
-
-        if(other.getMyFavourite() != null) {
-            myFavourite = new FavouriteDTO(other.getMyFavourite(), true);
-            //myFavourite.postDTO = this;
-            ////does not setting reference here to avoid cyclic dependency
-
         }
 
         if(other.getMostRecentComment() != null) {

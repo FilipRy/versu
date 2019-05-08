@@ -1,6 +1,5 @@
 package com.filip.versu.service;
 
-import com.filip.versu.VersuApplication;
 import com.filip.versu.entity.model.Comment;
 import com.filip.versu.entity.model.Post;
 import com.filip.versu.entity.model.User;
@@ -8,12 +7,12 @@ import com.filip.versu.exception.EntityNotExistsException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +24,9 @@ import static org.junit.Assert.assertTrue;
  * Created by Filip on 2/14/2016.
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {VersuApplication.class})
-@WebAppConfiguration
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(locations = "classpath:application-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CommentServiceTest {
 
@@ -49,7 +48,7 @@ public class CommentServiceTest {
         List<User> viewers = new ArrayList<>();
         viewers.add(viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -76,7 +75,7 @@ public class CommentServiceTest {
         List<User> viewers = new ArrayList<>();
         viewers.add(viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -84,7 +83,7 @@ public class CommentServiceTest {
         comment.setPost(post);
         comment.setContent("some good content");
 
-        Post postCopy = PostServiceTest.createShoppingItem(owner, viewers);
+        Post postCopy = PostServiceTest.createPost(owner, viewers);
         postCopy.setId(post.getId());
         postCopy.setPhotos(post.getPhotos());
 
@@ -113,7 +112,7 @@ public class CommentServiceTest {
         List<User> viewers = new ArrayList<>();
         viewers.add(viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
 
         Comment comment = new Comment();
         comment.setOwner(viewer);
@@ -140,7 +139,7 @@ public class CommentServiceTest {
         List<User> viewers = new ArrayList<>();
         viewers.add(viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         List<Comment> commentList = new ArrayList<>();
@@ -190,7 +189,7 @@ public class CommentServiceTest {
         viewers.add(viewer);
         viewers.add(viewer2);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -226,7 +225,7 @@ public class CommentServiceTest {
         viewers.add(viewer);
         viewers.add(viewer2);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -259,7 +258,7 @@ public class CommentServiceTest {
         viewers.add(viewer);
         viewers.add(viewer2);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -276,7 +275,7 @@ public class CommentServiceTest {
 
         comment2 = commentService.create(comment2, viewer);
 
-        assertTrue(commentService.countAtShoppingItem(post) == 2);
+        assertTrue(commentService.countAtPost(post) == 2);
     }
 
     @Test
@@ -291,7 +290,7 @@ public class CommentServiceTest {
         viewers.add(viewer);
         viewers.add(viewer2);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -313,7 +312,7 @@ public class CommentServiceTest {
          */
         commentService.removeOfUser(viewer2, viewer2);
 
-        assertTrue(commentService.countAtShoppingItem(post) == 1);
+        assertTrue(commentService.countAtPost(post) == 1);
     }
 
     @Test
@@ -328,7 +327,7 @@ public class CommentServiceTest {
         viewers.add(viewer);
         viewers.add(viewer2);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -361,7 +360,7 @@ public class CommentServiceTest {
         List<User> viewers = new ArrayList<>();
         viewers.add(viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, viewers);
+        Post post = PostServiceTest.createPost(owner, viewers);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();

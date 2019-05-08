@@ -3,26 +3,27 @@ package com.filip.versu.entity.model;
 import com.filip.versu.entity.dto.UserDTO;
 import com.filip.versu.entity.model.abs.AbsBaseEntity;
 import com.filip.versu.repository.DBHelper;
-import com.filip.versu.security.ExternalUserDTO;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Where;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
 @Entity
 @Table(name = DBHelper.TablesNames.USER)
 @Where(clause = "is_deleted=0")
-public class User extends AbsBaseEntity<Long> {
-
-    public enum UserRole {
-        APP_USER, USER_WITH_LINK
-    }
+public class User extends AbsBaseEntity<Long> implements UserDetails {
 
     /**
      * The UTC time, when this user was registered
@@ -47,13 +48,7 @@ public class User extends AbsBaseEntity<Long> {
 
     @Getter
     @Setter
-    @Size(min = 6, max = 20)
     private String password;
-
-    @Getter
-    @Setter
-    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.ALL}, mappedBy = "appUser")
-    private List<ExternalAccount> externalAccounts = new ArrayList<>();
 
     @Getter
     @Setter
@@ -67,13 +62,20 @@ public class User extends AbsBaseEntity<Long> {
     @Setter
     private String profilePhotoURL;
 
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value = FetchMode.SUBSELECT)
+    @Getter
+    @Setter
+    private List<UserRole> roles;
+
     /**
      * This is the last known location of this user.
      */
     @Getter
     @Setter
     @ManyToOne
-    private UserLocation location;
+    private GoogleLocation location;
 
     /**
      * The timestamp, when the notification for this user were synchronized last time.
@@ -87,18 +89,7 @@ public class User extends AbsBaseEntity<Long> {
     @OneToMany(fetch = FetchType.LAZY, cascade = {}, mappedBy = "owner")
     private List<DeviceInfo> devices = new ArrayList<>();
 
-    @Transient
-    @Getter
-    @Setter
-    private transient UserRole userRole;
 
-    /**
-     * This is an authorization token, for the users, who are not registered in the app.
-     */
-    @Transient
-    @Getter
-    @Setter
-    private transient String secretUrl;
 
     public User() {
         super();
@@ -114,19 +105,9 @@ public class User extends AbsBaseEntity<Long> {
         this.quote = other.quote;
 
         if(other.location != null) {
-            location = new UserLocation(other.location);
+            location = new GoogleLocation(other.location);
         }
 
-    }
-
-    public User(ExternalUserDTO externalUser) {
-        this.email = externalUser.email;
-        this.username = externalUser.username;
-        this.profilePhotoURL = externalUser.photoURL;
-
-        ExternalAccount externalAccount = new ExternalAccount(externalUser);
-        externalAccount.setAppUser(this);
-        this.externalAccounts.add(externalAccount);
     }
 
 
@@ -143,5 +124,56 @@ public class User extends AbsBaseEntity<Long> {
         if (email != null ? !email.equals(user.email) : user.email != null) return false;
         return profilePhotoURL != null ? profilePhotoURL.equals(user.profilePhotoURL) : user.profilePhotoURL == null;
 
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (UserRole role : roles) {
+            String name = role.getName().toUpperCase();
+            if (!name.startsWith("ROLE_")) {
+                name = "ROLE_" + name;
+            }
+            authorities.add(new SimpleGrantedAuthority(name));
+        }
+        return authorities;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "registrationTime=" + registrationTime +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", quote='" + quote + '\'' +
+                ", isDeleted=" + isDeleted +
+                ", profilePhotoURL='" + profilePhotoURL + '\'' +
+                ", roles=" + roles +
+                ", location=" + location +
+                ", lastNotificationRefreshTimestamp=" + lastNotificationRefreshTimestamp +
+                ", devices=" + devices +
+                '}';
     }
 }

@@ -24,8 +24,8 @@ public class FollowingController extends AbsAuthController<Long, Following, Foll
 
 
     @RequestMapping(method = RequestMethod.POST)
-    public FollowingDTO create(@RequestBody FollowingDTO following, @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+    public FollowingDTO create(@RequestBody FollowingDTO following) {
+        User requester = authenticateUser();
 
         validation.validate(following);
 
@@ -40,13 +40,12 @@ public class FollowingController extends AbsAuthController<Long, Following, Foll
     @RequestMapping(value = "/followers/{id}", method = RequestMethod.GET)
     public Page<FollowingDTO> listFollowers(@PathVariable("id") Long userID,
                                             @RequestParam(value = "lastId", required = false) Long lastLoadedId,
-                                            Pageable pageable,
-                                            @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
+                                            Pageable pageable) {
 
-        User requester = authenticateUser(accessToken);
+        User requester = authenticateUser();
 
         if (logger.isInfoEnabled()) {
-            logger.info("Arrived request to read followers of user " + userID + " by user " + requester.getId());
+            logger.info("Arrived request to read FOLLOWERS of user " + userID + " by user " + requester.getId());
         }
 
         Page<Following> followingPage = followingService.listFollowersOfUser(userID, lastLoadedId, pageable, requester);
@@ -54,7 +53,7 @@ public class FollowingController extends AbsAuthController<Long, Following, Foll
         Page<FollowingDTO> followingDTOPage = super.mapModelPageToDTOPage(followingPage, pageable);
 
         if (logger.isInfoEnabled()) {
-            logger.info("Finished request to read followers of user " + userID + " by user " + requester.getId());
+            logger.info("Finished request to read FOLLOWERS of user " + userID + " by user " + requester.getId());
         }
 
         return followingDTOPage;
@@ -63,9 +62,9 @@ public class FollowingController extends AbsAuthController<Long, Following, Foll
     @RequestMapping(value = "/following/{id}", method = RequestMethod.GET)
     public Page<FollowingDTO> listFollowings(@PathVariable("id") Long userID,
                                              @RequestParam(value = "lastId", required = false) Long lastLoadedId,
-                                             Pageable pageable,
-                                             @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+                                             Pageable pageable) {
+
+        User requester = authenticateUser();
 
         if (logger.isInfoEnabled()) {
             logger.info("Arrived request to read followings of user " + userID + " by user " + requester.getId());
@@ -84,8 +83,9 @@ public class FollowingController extends AbsAuthController<Long, Following, Foll
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public FollowingDTO delete(@PathVariable("id") Long id, @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+    public FollowingDTO delete(@PathVariable("id") Long id) {
+
+        User requester = authenticateUser();
         return createDTOFromModel(followingService.delete(id, requester));
     }
 

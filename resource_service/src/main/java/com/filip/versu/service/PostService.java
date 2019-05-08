@@ -119,7 +119,7 @@ public interface PostService extends CrudAuthService<Post, Long>, UserCompositio
 
     /**
      * This lists the user, who are authorized to view a shopping item.
-     * Precondition: ShoppingItem.accessType == specific
+     * Precondition: ShoppingItem.accessType == SPECIFIC
      *
      * @param shoppingItemID
      * @return

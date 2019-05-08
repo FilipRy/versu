@@ -9,30 +9,34 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.util.IOUtils;
-import com.filip.versu.entity.model.ExternalAccount;
+import com.filip.versu.entity.model.GoogleLocation;
 import com.filip.versu.entity.model.User;
-import com.filip.versu.entity.model.UserLocation;
+import com.filip.versu.entity.model.UserRole;
 import com.filip.versu.exception.EntityExistsException;
 import com.filip.versu.exception.EntityNotExistsException;
 import com.filip.versu.exception.ExceptionMessages;
 import com.filip.versu.exception.UnauthorizedException;
 import com.filip.versu.repository.UserRepository;
 import com.filip.versu.service.*;
+import com.filip.versu.service.abs.GoogleLocationService;
 import com.filip.versu.service.impl.abs.AbsCrudServiceImpl;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 @Service
 public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserRepository> implements UserService {
@@ -50,10 +54,13 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
     private CommentService commentService;
 
     @Autowired
-    private FavouriteService favouriteService;
+    private GoogleLocationService googleLocationService;
 
     @Autowired
-    private UserLocationService userLocationService;
+    private NotificationService notificationService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private String amazonS3AccessKey;
 
@@ -82,40 +89,30 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
     @Override
     public User create(User entity, User requester) {
         entity.setRegistrationTime(System.currentTimeMillis());
-        /**
-         * Checking if the "requester" is already associated with some facebook ID.
-         */
-        List<User> users = new ArrayList<>();
-        for (ExternalAccount externalAccount : entity.getExternalAccounts()) {
-            if (externalAccount.getExternalUserId() != null) {
-                users = repository.findByExternalAccountID(externalAccount.getExternalUserId(), externalAccount.getProvider());
-            }
+
+        User userWithSameUsername = findOneByUsername(entity.getUsername());
+        if (userWithSameUsername != null) {
+            throw new EntityExistsException(ExceptionMessages.EntityExistsException.USERNAME_TAKEN);
+        }
+        User userWithSameEmail = findOneByEmail(entity.getEmail());
+        if (userWithSameEmail != null) {
+            throw new EntityExistsException(ExceptionMessages.EntityExistsException.EMAIL_TAKEN);
         }
 
-        if (users != null && users.size() > 0) {
-            return users.get(0);
-        } else {
-            User userWithSameUsername = findOneByUsername(entity.getUsername());
-            if (userWithSameUsername != null) {
-                throw new EntityExistsException(ExceptionMessages.EntityExistsException.USERNAME_TAKEN);
-            }
-            User userWithSameEmail = findOneByEmail(entity.getEmail());
-            if (userWithSameEmail != null) {
-                throw new EntityExistsException(ExceptionMessages.EntityExistsException.EMAIL_TAKEN);
-            }
-
-            if (entity.getLocation() != null) {
-                UserLocation userLocation = entity.getLocation();
-                userLocation = userLocationService.create(userLocation);
-                entity.setLocation(userLocation);
-            }
-
-            if (entity.getProfilePhotoURL() != null) {
-                uploadProfilePhoto(entity);
-            }
-
-            return super.create(entity);
+        if (entity.getLocation() != null) {
+            GoogleLocation userLocation = entity.getLocation();
+            userLocation = googleLocationService.create(userLocation);
+            entity.setLocation(userLocation);
         }
+
+        if (entity.getProfilePhotoURL() != null) {
+            uploadProfilePhoto(entity);
+        }
+
+        entity.setRoles(Arrays.asList(new UserRole("USER")));
+        entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+
+        return super.create(entity);
     }
 
     public void uploadProfilePhoto(User user) {
@@ -202,17 +199,7 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
         if (user == null) {
             return null;
         }
-        user.getExternalAccounts().size();//force to load external accounts
         return user;
-    }
-
-    @Override
-    public User findOnyByExternalAccountId(String externalId, ExternalAccount.ExternalAccountProvider provider) {
-        List<User> users = repository.findByExternalAccountID(externalId, provider);
-        if (users == null || users.size() == 0) {
-            return null;
-        }
-        return users.get(0);
     }
 
     @Override
@@ -223,6 +210,11 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
     @Override
     public User findOneByEmail(String email) {
         return repository.findOneByEmail(email);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
+        return null;
     }
 
     @Override
@@ -279,8 +271,8 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
 
         if (updatedEntity.getLocation() != null) {
             if (updatedEntity.getLocation().getId() == null) {
-                UserLocation userLocation = updatedEntity.getLocation();
-                userLocation = userLocationService.create(userLocation);
+                GoogleLocation userLocation = updatedEntity.getLocation();
+                userLocation = googleLocationService.create(userLocation);
                 updatedEntity.setLocation(userLocation);
             }
         }
@@ -307,7 +299,8 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
         postService.removeOfUser(entity, requester);
 
         commentService.removeOfUser(entity, requester);
-        favouriteService.removeOfUser(entity, requester);
+        notificationService.removeByUser(entity);
+
 
         entity.setDeleted(true);
         return update(entity, requester);

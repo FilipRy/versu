@@ -17,4 +17,5 @@ public abstract class AbsBaseEntityWithOwnerDTO<K> extends AbsBaseEntityDTO<K> {
 
     public AbsBaseEntityWithOwnerDTO() {
     }
+
 }

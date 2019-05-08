@@ -2,26 +2,27 @@ package com.filip.versu.service;
 
 
 import com.filip.versu.VersuApplication;
-import com.filip.versu.entity.model.ExternalAccount;
+import com.filip.versu.entity.model.GoogleLocation;
 import com.filip.versu.entity.model.User;
-import com.filip.versu.entity.model.UserLocation;
 import com.filip.versu.exception.EntityExistsException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {VersuApplication.class})
-@WebAppConfiguration
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(locations = "classpath:application-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class UserServiceTest {
 
@@ -38,28 +39,28 @@ public class UserServiceTest {
     }
 
 
-    @Test
-    public void createUser_shouldReturnAlreadyExistingUser() {
-
-        User userFilip = createUser("popel-princko");
-        userFilip = userService.create(userFilip, userFilip);
-
-        User userFilipCopy = new User();
-
-        ExternalAccount externalAccount = new ExternalAccount();
-        externalAccount.setAppUser(userFilipCopy);
-        externalAccount.setExternalUserId(userFilip.getExternalAccounts().get(0).getExternalUserId());
-        externalAccount.setProvider(userFilip.getExternalAccounts().get(0).getProvider());
-
-        userFilipCopy.getExternalAccounts().add(externalAccount);
-
-        userFilipCopy = userService.create(userFilipCopy, userFilipCopy);
-
-        //using the same external account provider second time -> 1st user should be returned
-        assertTrue(userFilipCopy.equals(userFilip));
-
-
-    }
+//    @Test
+//    public void createUser_shouldReturnAlreadyExistingUser() {
+//
+//        User userFilip = createUser("popel-princko");
+//        userFilip = userService.create(userFilip, userFilip);
+//
+//        User userFilipCopy = new User();
+//
+//        ExternalAccount externalAccount = new ExternalAccount();
+//        externalAccount.setAppUser(userFilipCopy);
+//        externalAccount.setExternalUserId(userFilip.getExternalAccounts().get(0).getExternalUserId());
+//        externalAccount.setProvider(userFilip.getExternalAccounts().get(0).getProvider());
+//
+//        userFilipCopy.getExternalAccounts().add(externalAccount);
+//
+//        userFilipCopy = userService.create(userFilipCopy, userFilipCopy);
+//
+//        //using the same external account provider second time -> 1st user should be returned
+//        assertTrue(userFilipCopy.equals(userFilip));
+//
+//
+//    }
 
     @Test(expected = EntityExistsException.class)
     public void createUser_shouldThrowEntityExistsException() {
@@ -87,12 +88,12 @@ public class UserServiceTest {
 
         String query = "my name";
 
-        Page<User> results = userService.findByNameLike(query, new PageRequest(0, 20));
+        Page<User> results = userService.findByNameLike(query, PageRequest.of(0, 20));
 
         assertTrue(results.getContent().contains(userFilip));
 
         query = "this";
-        results = userService.findByNameLike(query, new PageRequest(0, 20));
+        results = userService.findByNameLike(query, PageRequest.of(0, 20));
 
         assertTrue(results.getContent().contains(userFilip));
     }
@@ -105,7 +106,7 @@ public class UserServiceTest {
 
         assertTrue(userFilip.getLocation() == null);
 
-        UserLocation userLocation = new UserLocation();
+        GoogleLocation userLocation = new GoogleLocation();
         userLocation.setLatitude(48.160514);
         userLocation.setLongitude(17.103830);
         userFilip.setLocation(userLocation);
@@ -115,7 +116,7 @@ public class UserServiceTest {
         //this is the first location of userFilip
         userLocation = userFilip.getLocation();
 
-        UserLocation userLocation1 = new UserLocation();
+        GoogleLocation userLocation1 = new GoogleLocation();
         userLocation1.setLatitude(48.159219);
         userLocation1.setLongitude(17.100965);
         userFilip.setLocation(userLocation1);
@@ -135,7 +136,7 @@ public class UserServiceTest {
 
         assertTrue(userFilip.getLocation() == null);
 
-        UserLocation userLocation = new UserLocation();
+        GoogleLocation userLocation = new GoogleLocation();
         userLocation.setLatitude(48.160514);
         userLocation.setLongitude(17.103830);
 
@@ -146,7 +147,7 @@ public class UserServiceTest {
         //this is the first location of userFilip
         userLocation = userFilip.getLocation();
 
-        UserLocation userLocation1 = new UserLocation();
+        GoogleLocation userLocation1 = new GoogleLocation();
         userLocation1.setLatitude(48.142839);
         userLocation1.setLongitude(16.958847);
         userFilip.setLocation(userLocation1);
@@ -175,12 +176,12 @@ public class UserServiceTest {
         User userFilip = new User();
         userFilip.setEmail(username+"@mail.com");
 
-        ExternalAccount externalAccount = new ExternalAccount();
-        externalAccount.setProvider(ExternalAccount.ExternalAccountProvider.FACEBOOK);
-        externalAccount.setExternalUserId(Long.toString(System.currentTimeMillis() + System.nanoTime()));
-        externalAccount.setAppUser(userFilip);
-
-        userFilip.getExternalAccounts().add(externalAccount);
+//        ExternalAccount externalAccount = new ExternalAccount();
+//        externalAccount.setProvider(ExternalAccount.ExternalAccountProvider.FACEBOOK);
+//        externalAccount.setExternalUserId(Long.toString(System.currentTimeMillis() + System.nanoTime()));
+//        externalAccount.setAppUser(userFilip);
+//
+//        userFilip.getExternalAccounts().add(externalAccount);
 
         userFilip.setUsername(username);
         userFilip.setPassword("princko");

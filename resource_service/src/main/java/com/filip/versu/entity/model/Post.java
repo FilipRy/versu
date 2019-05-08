@@ -9,6 +9,8 @@ import com.filip.versu.entity.model.abs.AbsBaseEntityWithOwner;
 import com.filip.versu.repository.DBHelper;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
@@ -22,13 +24,13 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
 
     /**
      * This enum specifies the access type to the shopping item.
-     * The onlyOwner type = only creator of the shopping item can see this shopping item.
-     * The followers type = each follower can view the shopping item.
-     * the publicc type = each user can view the shopping item.
-     * The specific type = only the specific persons (@viewers) can view this post
+     * The ONLY_OWNER type = only creator of the shopping item can see this shopping item.
+     * The FOLLOWERS type = each follower can view the shopping item.
+     * the PUBLICC type = each user can view the shopping item.
+     * The SPECIFIC type = only the SPECIFIC persons (@viewers) can view this post
      */
-    public enum AccessType {
-        onlyOwner(1), followers(2), publicc(3), specific(4);
+    public static enum AccessType {
+        ONLY_OWNER(1), FOLLOWERS(2), PUBLICC(3), SPECIFIC(4);
 
         private final int value;
 
@@ -66,9 +68,10 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
     @Getter
     @Setter
     @ManyToOne
-    private PostLocation location;
+    private GoogleLocation location;
 
     @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "post", fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
     @Getter
     @Setter
     private List<PostPhoto> photos;
@@ -76,7 +79,8 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
     @Getter
     @Setter
     @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "post", fetch = FetchType.EAGER)
-    private List<PostFeedbackPossibility> postFeedbackPossibilities = new ArrayList<>();
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<PostFeedbackPossibility> postFeedbackPossibilities;
 
     @Getter
     @Setter
@@ -88,20 +92,13 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
     @Setter
     private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
-    @Getter
-    @Setter
-    private List<Favourite> favourites = new ArrayList<>();
 
     @Transient
     @Getter
     @Setter
     private PostFeedbackVote myPostFeedbackVote;
 
-    @Transient
-    @Getter
-    @Setter
-    private Favourite myFavourite;
+
     @Transient
     @Getter
     @Setter
@@ -109,6 +106,7 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
 
     @Getter
     @Setter
+    @Enumerated
     private AccessType accessType;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -141,7 +139,7 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
         this.secretUrl = other.secretUrl;
 
         if(other.location != null) {
-            this.location = new PostLocation(other.location);
+            this.location = new GoogleLocation(other.location);
         }
 
         if(other.viewers != null) {

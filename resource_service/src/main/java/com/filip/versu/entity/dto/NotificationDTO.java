@@ -2,17 +2,14 @@ package com.filip.versu.entity.dto;
 
 
 import com.filip.versu.entity.dto.abs.AbsBaseEntityDTO;
+import com.filip.versu.entity.model.Notification;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NotificationDTO extends AbsBaseEntityDTO<Long> {
 
-    public enum NotificationType {
-        following, post, comment, post_feedback
-    }
-
-    public NotificationType type;
+    public Notification.NotificationType type;
 
     /**
      * References ID of the entity, which creation caused to create this notification. == ID of Notification.getContentEntity()

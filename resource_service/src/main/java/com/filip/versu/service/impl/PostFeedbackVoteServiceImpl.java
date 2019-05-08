@@ -1,15 +1,13 @@
 package com.filip.versu.service.impl;
 
-import com.filip.versu.entity.model.Post;
-import com.filip.versu.entity.model.PostFeedbackPossibility;
-import com.filip.versu.entity.model.User;
-import com.filip.versu.entity.model.PostFeedbackVote;
+import com.filip.versu.entity.model.*;
 import com.filip.versu.exception.EntityNotExistsException;
 import com.filip.versu.exception.ExceptionMessages;
 import com.filip.versu.exception.ForbiddenException;
 import com.filip.versu.exception.UnauthorizedException;
 import com.filip.versu.repository.PostFeedbackVoteRepository;
 import com.filip.versu.service.*;
+import com.filip.versu.service.NotificationService;
 import com.filip.versu.service.impl.abs.AbsCrudAuthServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,7 +35,10 @@ public class PostFeedbackVoteServiceImpl extends AbsCrudAuthServiceImpl<PostFeed
     public PostFeedbackVote create(PostFeedbackVote entity, User requester) {
         entity.setTimestamp(System.currentTimeMillis());
         PostFeedbackVote postFeedbackVote = super.create(entity, requester);
-        notificationService.createForPostFeedback(postFeedbackVote);
+
+        Notification notification = new Notification(entity.getPostFeedbackPossibility().getPost().getOwner(), entity.getPostFeedbackPossibility().getPost().getId(), Notification.NotificationType.post_feedback, entity.getOwner());
+        notificationService.createAsync(notification);
+
         return postFeedbackVote;
     }
 

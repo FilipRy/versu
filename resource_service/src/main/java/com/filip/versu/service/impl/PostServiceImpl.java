@@ -17,6 +17,8 @@ import com.filip.versu.exception.ForbiddenException;
 import com.filip.versu.exception.UnauthorizedException;
 import com.filip.versu.repository.PostRepository;
 import com.filip.versu.service.*;
+import com.filip.versu.service.NotificationService;
+import com.filip.versu.service.abs.GoogleLocationService;
 import com.filip.versu.service.impl.abs.AbsCrudAuthServiceImpl;
 import com.google.common.collect.Lists;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -50,8 +53,6 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
     @Autowired
     private CommentService commentService;
 
-    @Autowired
-    private FavouriteService favouriteService;
 
     @Autowired
     private PostFeedbackVoteService postFeedbackVoteService;
@@ -63,7 +64,7 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
     private NotificationService notificationService;
 
     @Autowired
-    private PostLocationService postLocationService;
+    private GoogleLocationService googleLocationService;
 
     private SecureRandom secureRandom;
 
@@ -87,12 +88,8 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
     public Post create(Post entity, User requester) {
 
         if (entity.getLocation() != null) {
-            PostLocation createdLocation = postLocationService.create(entity.getLocation());
+            GoogleLocation createdLocation = googleLocationService.create(entity.getLocation());
             entity.setLocation(createdLocation);
-        }
-
-        if (entity.getAccessType() == Post.AccessType.specific) {
-            notificationService.createForPost(entity);
         }
 
         //meaning user wants to generate a public url to share
@@ -101,7 +98,14 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
             entity.setSecretUrl(url);
         }
 
-        return super.create(entity, requester);
+        entity = super.create(entity, requester);
+
+        if (entity.getAccessType() == Post.AccessType.SPECIFIC) {
+            Notification notification = new Notification(null, entity.getId(), Notification.NotificationType.post, entity.getOwner());
+            notificationService.createAsync(notification);
+        }
+
+        return entity;
     }
 
     /**
@@ -134,7 +138,7 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
         if (getOwner == null) {
             throw new EntityNotExistsException(ExceptionMessages.EntityNotExistsException.USER);
         }
-        if (entity.getAccessType() == Post.AccessType.specific) {
+        if (entity.getAccessType() == Post.AccessType.SPECIFIC) {
             verifyExistingViewers(entity);
         }
         entity.setPublishTime(System.currentTimeMillis());
@@ -156,13 +160,13 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
 
     @Override
     public boolean canUserReadPost(User user, Post post) {
-        boolean hasUserLink = user.getUserRole() == User.UserRole.USER_WITH_LINK;
-        if (hasUserLink) {//this is for the case a non-registered user having the secret url wants to read this post.
-            if (post.getSecretUrl() != null && post.getSecretUrl().equals(user.getSecretUrl())) {
-                return true;
-            }
-            return false;
-        }
+//        boolean hasUserLink = user.getUserRole() == User.UserRole.USER_WITH_LINK;
+//        if (hasUserLink) {//this is for the case a non-registered user having the secret url wants to read this post.
+//            if (post.getSecretUrl() != null && post.getSecretUrl().equals(user.getSecretUrl())) {
+//                return true;
+//            }
+//            return false;
+//        }
         return repository.isUserTheViewerOfPost(post.getId(), user);
     }
 
@@ -274,9 +278,28 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
     @Override
     public Page<Post> findByFeedbackPossibilitiesName(String feedbackPossibilityA, String feedbackPossibilityB, User requester, Pageable pageable) {
 
-        return repository.findPostsByFeedbackPossibilitesName(feedbackPossibilityA,
-                feedbackPossibilityB, requester, pageable);
+        // TODO this has to be done by a single query
 
+        List<Post> resultsList = new ArrayList<>();
+
+        Page<Post> bothPossibilities = repository.findPostsHavingBothFeedbackPossibilitesName(feedbackPossibilityA, feedbackPossibilityB, requester, pageable);
+
+        if (bothPossibilities != null) {
+            for (Post p: bothPossibilities.getContent()) {
+                resultsList.add(p);
+            }
+        }
+        Page<Post> onePossibility = repository.findPostsByXORFeedbackPossibilitesName(feedbackPossibilityA, feedbackPossibilityB, requester, pageable);
+
+        if (onePossibility != null) {
+            for (Post p: onePossibility.getContent()) {
+                resultsList.add(p);
+            }
+        }
+
+        Page<Post> allResults = new PageImpl<>(resultsList);
+
+        return  allResults;
     }
 
 
@@ -333,11 +356,6 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
             return post;
         }
 
-        Favourite myFavourite = favouriteService.findByCreatorAndShoppingItem(requester, post, requester);
-        if (myFavourite != null) {
-            post.setMyFavourite(myFavourite);
-        }
-
         PostFeedbackVote myPostFeedbackVote = postFeedbackVoteService.findByCreatorAndPost(requester, post, requester);
         if (myPostFeedbackVote != null) {
             post.setMyPostFeedbackVote(myPostFeedbackVote);
@@ -367,7 +385,7 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
             throw new UnauthorizedException(ExceptionMessages.UnauthorizedException.UNAUTHORIZED);
         }
 
-        if (post.getAccessType() != Post.AccessType.specific) {
+        if (post.getAccessType() != Post.AccessType.SPECIFIC) {
             throw new ForbiddenException(ExceptionMessages.ForbiddenException.SHOPPING_ITEM);
         }
 
@@ -405,7 +423,7 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
 
         getEntity.setTimer(updatedEntity.getTimer());
 
-        if (updatedEntity.getAccessType() == Post.AccessType.specific) {
+        if (updatedEntity.getAccessType() == Post.AccessType.SPECIFIC) {
             getEntity.setViewers(updatedEntity.getViewers());
             verifyExistingViewers(getEntity);
         }
@@ -436,7 +454,9 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
 
         commentService.removeOfShoppingItem(entity, entity.getOwner());
 
-        notificationService.removeByShoppingItem(entity);
+        notificationService.removeByTypeAndId(Notification.NotificationType.post, entity.getId());
+        notificationService.removeByTypeAndId(Notification.NotificationType.post_feedback, entity.getId());
+        notificationService.removeByTypeAndId(Notification.NotificationType.comment, entity.getId());
 
         for (PostFeedbackPossibility possibility : entity.getPostFeedbackPossibilities()) {
             postFeedbackPossibilityService.delete(possibility.getId());
@@ -463,17 +483,17 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
             throw new UnauthorizedException(ExceptionMessages.UnauthorizedException.UNAUTHORIZED);
         }
 
-        Pageable pageable = new PageRequest(0, 50);
-        Page<Post> shoppingItems = null;
+        Pageable pageable = PageRequest.of(0, 50);
+        Page<Post> posts;
 
         do {
-            shoppingItems = listAllMyPosts(getUser.getId(), pageable, requester);
+            posts = listAllMyPosts(getUser.getId(), pageable, requester);
 
-            for (Post post : shoppingItems) {
+            for (Post post : posts) {
                 delete(post.getId(), requester);
             }
-            pageable = shoppingItems.nextPageable();
-        } while (shoppingItems.hasNext());
+            pageable = posts.nextPageable();
+        } while (posts.hasNext());
 
     }
 

@@ -4,7 +4,7 @@ package com.filip.versu.controller;
 import com.filip.versu.controller.abs.AbsAuthController;
 import com.filip.versu.entity.dto.NotificationDTO;
 import com.filip.versu.entity.model.User;
-import com.filip.versu.entity.model.notification.Notification;
+import com.filip.versu.entity.model.Notification;
 import com.filip.versu.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -22,15 +22,14 @@ public class NotificationController extends AbsAuthController<Long, Notification
     @RequestMapping(value = "/user/{id}", method = RequestMethod.GET)
     public List<NotificationDTO> listNotificationsOfUser(@PathVariable("id") Long userID,
                                                          @RequestParam(value = "lastId", required = false) Long lastLoadedId,
-                                                         Pageable pageable,
-                                                         @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+                                                         Pageable pageable) {
+        User requester = authenticateUser();
         return notificationService.listNotificationsOfUser(userID, lastLoadedId, pageable, requester, false);
     }
 
     @RequestMapping(value = "/{id}/seen", method = RequestMethod.GET)
-    public boolean markAsSeen(@PathVariable("id") Long notificationId, @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+    public boolean markAsSeen(@PathVariable("id") Long notificationId) {
+        User requester = authenticateUser();
         return notificationService.markAsSeen(notificationId, requester);
     }
 

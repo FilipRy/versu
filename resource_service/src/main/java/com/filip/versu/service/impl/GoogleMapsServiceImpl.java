@@ -1,9 +1,10 @@
 package com.filip.versu.service.impl;
 
 import com.filip.versu.entity.dto.GeocodeResultDTO;
-import com.filip.versu.entity.model.UserLocation;
-import com.filip.versu.entity.model.abs.AbsLocation;
+import com.filip.versu.entity.model.GoogleLocation;
 import com.filip.versu.service.GoogleMapsService;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -27,7 +28,7 @@ public class GoogleMapsServiceImpl implements GoogleMapsService {
     }
 
     @Override
-    public AbsLocation findByGoogleID(AbsLocation location) {
+    public GoogleLocation findByGoogleID(GoogleLocation location) {
         RestTemplate restTemplate = new RestTemplate();
 
         String url = "https://maps.googleapis.com/maps/api/geocode/json";
@@ -61,15 +62,14 @@ public class GoogleMapsServiceImpl implements GoogleMapsService {
                 location.setName(formattedAddress);
 
                 //cityLocation represents city of @location
-                UserLocation cityLocation = new UserLocation();
+                GoogleLocation cityLocation = new GoogleLocation();
                 cityLocation.setGoogleID(location.getGoogleID());
                 cityLocation.setLatitude(location.getLatitude());
                 cityLocation.setLongitude(location.getLongitude());
-                cityLocation = (UserLocation) findLocalityByLatLng(cityLocation);
+                cityLocation = findLocalityByLatLng(cityLocation);
 
                 location.setCityName(cityLocation.getCityName());
                 location.setCityGoogleId(cityLocation.getCityGoogleId());
-
             }
         } else {
             //this should not happen, because it's coded by google's id, only if the google's id is removed
@@ -79,7 +79,7 @@ public class GoogleMapsServiceImpl implements GoogleMapsService {
     }
 
     @Override
-    public AbsLocation findLocalityByLatLng(AbsLocation location) {
+    public GoogleLocation findLocalityByLatLng(GoogleLocation location) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -118,7 +118,7 @@ public class GoogleMapsServiceImpl implements GoogleMapsService {
     }
 
     @Override
-    public AbsLocation findAdminAreaByLatLng(AbsLocation location) {
+    public GoogleLocation findAdminAreaByLatLng(GoogleLocation location) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -146,9 +146,9 @@ public class GoogleMapsServiceImpl implements GoogleMapsService {
         if(geocodeResult.getStatus().equals("OK")) {
             location = geoCodeResultToAbsLocationAdapter(geocodeResult, location);
         } else {
-            location.setName(AbsLocation.NAME_UKNOWN);
-            location.setLatitude(AbsLocation.LAT_UNKNOWN);
-            location.setLongitude(AbsLocation.LON_UNKNOWN);
+            location.setName(GoogleLocation.NAME_UKNOWN);
+            location.setLatitude(GoogleLocation.LAT_UNKNOWN);
+            location.setLongitude(GoogleLocation.LON_UNKNOWN);
         }
         return location;
     }
@@ -159,7 +159,7 @@ public class GoogleMapsServiceImpl implements GoogleMapsService {
      * @param location - geocodeResult properties are copied to this param
      * @return
      */
-    private AbsLocation geoCodeResultToAbsLocationAdapter(GeocodeResultDTO geocodeResult, AbsLocation location) {
+    private GoogleLocation geoCodeResultToAbsLocationAdapter(GeocodeResultDTO geocodeResult, GoogleLocation location) {
         location.setGoogleID(geocodeResult.getResults().get(0).getPlace_id());
         location.setName(geocodeResult.getResults().get(0).getFormatted_address());
         location.setLatitude(geocodeResult.getResults().get(0).getGeometry().getLocation().getLat());

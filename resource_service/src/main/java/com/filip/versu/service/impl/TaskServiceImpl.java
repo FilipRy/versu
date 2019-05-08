@@ -17,12 +17,12 @@ public class TaskServiceImpl implements TaskService {
     private final static Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 
     @Override
-    @Scheduled(cron = "0 0 */1 * * *")//execute task each 1 hours...
-    public void executeDBQuery() {//TODO find a better solution to keep conn with DB alive
+    @Scheduled(cron = "0 0 */1 * * *")//execute task each 1 hour...
+    public void keepDBConnectionAlive() {//TODO find a better solution to keep conn with DB alive
         if(logger.isInfoEnabled()) {
             logger.info("Executing scheduled task to keep connection with DB alive.");
         }
-        commentRepository.findOne(1l);//this is a random query to keep the connection with DB "alive"
+        commentRepository.findOne(null);//this is a random query to keep the connection with DB "alive"
         commentRepository.setNamesToUtf8Mb4();//sometimes this needs to be re-executed probably, if app has a new connection with DB. ?? TODO
     }
 }

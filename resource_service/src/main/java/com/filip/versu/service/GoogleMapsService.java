@@ -1,15 +1,15 @@
 package com.filip.versu.service;
 
-import com.filip.versu.entity.model.abs.AbsLocation;
+import com.filip.versu.entity.model.GoogleLocation;
 
 
 public interface GoogleMapsService {
 
 
-    public AbsLocation findByGoogleID(AbsLocation location);
+    public GoogleLocation findByGoogleID(GoogleLocation location);
 
-    public AbsLocation findLocalityByLatLng(AbsLocation location);
+    public GoogleLocation findLocalityByLatLng(GoogleLocation location);
 
-    public AbsLocation findAdminAreaByLatLng(AbsLocation location);
+    public GoogleLocation findAdminAreaByLatLng(GoogleLocation location);
 
 }

@@ -17,28 +17,26 @@ public class DeviceInfoController extends AbsAuthController<Long, DeviceInfo, De
     private DeviceInfoService deviceInfoService;
 
     @RequestMapping(method = RequestMethod.POST)
-    public DeviceInfoDTO create(@RequestBody DeviceInfoDTO deviceInfoDTO, @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+    public DeviceInfoDTO create(@RequestBody DeviceInfoDTO deviceInfoDTO) {
 
+        User requester = authenticateUser();
         DeviceInfo deviceInfo = deviceInfoService.create(createModelFromDTO(deviceInfoDTO), requester);
         return createDTOFromModel(deviceInfo);
     }
 
     @RequestMapping(method = RequestMethod.PUT)
-    public DeviceInfoDTO update(@RequestBody DeviceInfoDTO deviceInfoDTO, @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+    public DeviceInfoDTO update(@RequestBody DeviceInfoDTO deviceInfoDTO) {
 
+        User requester = authenticateUser();
         DeviceInfo deviceInfo = createModelFromDTO(deviceInfoDTO);
-
         return createDTOFromModel(deviceInfoService.update(deviceInfo, requester));
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public DeviceInfoDTO delete(@PathVariable("id") Long id, @RequestHeader(AUTHORIZATION_HEADER) String accessToken) {
-        User requester = authenticateUser(accessToken);
+    public DeviceInfoDTO delete(@PathVariable("id") Long id) {
 
+        User requester = authenticateUser();
         DeviceInfo deletedDeviceInfo = deviceInfoService.delete(id, requester);
-
         return deletedDeviceInfo == null ? null : createDTOFromModel(deletedDeviceInfo);
     }
 

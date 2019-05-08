@@ -1,21 +1,19 @@
 package com.filip.versu.service.impl;
 
-import com.amazonaws.util.json.JSONObject;
+
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.filip.versu.entity.dto.FirebaseNotifKeyExchanger;
 import com.filip.versu.entity.dto.FirebaseNotificationDTO;
 import com.filip.versu.entity.dto.NotificationDTO;
 import com.filip.versu.entity.dto.UserDTO;
 import com.filip.versu.entity.model.*;
-import com.filip.versu.entity.model.notification.FollowingNotification;
-import com.filip.versu.entity.model.notification.Notification;
-import com.filip.versu.entity.model.notification.PostNotification;
+import com.filip.versu.entity.model.Notification;
+import com.filip.versu.entity.model.abs.AbsBaseEntity;
 import com.filip.versu.exception.ExceptionMessages;
 import com.filip.versu.exception.UnauthorizedException;
 import com.filip.versu.repository.NotificationRepository;
-import com.filip.versu.service.CommentService;
+import com.filip.versu.service.*;
 import com.filip.versu.service.NotificationService;
-import com.filip.versu.service.PostFeedbackVoteService;
-import com.filip.versu.service.UserService;
 import com.filip.versu.service.impl.abs.AbsCrudServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +48,10 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
 
     @Lazy
     @Autowired
+    private PostService postService;
+
+    @Lazy
+    @Autowired
     private PostFeedbackVoteService postFeedbackVoteService;
 
     @Autowired
@@ -64,55 +66,52 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
     }
 
     @Async
-    @Override
     public Future<Notification> createAsync(Notification entity) {
 
         entity.setLastUpdateTimestamp(System.currentTimeMillis());
 
         //notification is unique per target, type, content entity id
-        if (entity.getType() == NotificationDTO.NotificationType.comment ||
-                entity.getType() == NotificationDTO.NotificationType.post_feedback) {
+        if (entity.getNotificationType() == Notification.NotificationType.comment ||
+                entity.getNotificationType() == Notification.NotificationType.post_feedback) {
 
-            PostNotification postNotification = (PostNotification) entity;
-            if (postNotification.getTarget().equals(postNotification.getCreator())) {//receiver of the notification is the same as the source.
+            if (entity.getTarget().equals(entity.getCreator())) {//receiver of the notification is the same as the source.
                 return null;
             }
-            PostNotification notification = getByTypeTargetShopping(entity.getType(), entity.getTarget(), postNotification.getEntityContent());
+            entity.setSeen(false);
+
+            List<User> targets = new ArrayList<>();
+            targets.add(entity.getTarget());
+            createPushNotificationForTarget(targets, entity);
+
+            Notification notification = this.findByNotifTypeTargetAbsBase(entity.getNotificationType(), entity.getTarget(), entity.getPayloadId());
             if (notification == null) {
-                List<User> targets = new ArrayList<>();
-                targets.add(entity.getTarget());
-                createPushNotificationForTarget(targets, entity);
                 return new AsyncResult<>(super.create(entity));
             } else {
                 entity.setId(notification.getId());
-                List<User> targets = new ArrayList<>();
-                targets.add(entity.getTarget());
-                createPushNotificationForTarget(targets, entity);
-                return new AsyncResult<>(update(entity));
+                return new AsyncResult<>(this.update(entity));
             }
 
-        } else if (entity.getType() == NotificationDTO.NotificationType.post) {
+        } else if (entity.getNotificationType() == Notification.NotificationType.post) {
 
-            PostNotification postNotification = (PostNotification) entity;
+            Post post = postService.get(entity.getPayloadId());
 
             //creating notifications for viewers
-            for (User viewer : postNotification.getEntityContent().getViewers()) {
-
-                PostNotification notification = new PostNotification();
+            for (User viewer : post.getViewers()) {
+                Notification notification = new Notification();
                 notification.setTarget(viewer);
-                notification.setEntityContent(postNotification.getEntityContent());
-                notification.setCreator(postNotification.getCreator());
+                notification.setPayloadId(post.getId());
+                notification.setCreator(entity.getCreator());
                 notification.setLastUpdateTimestamp(entity.getLastUpdateTimestamp());
-                notification.setType(postNotification.getType());
+                notification.setNotificationType(entity.getNotificationType());
 
                 super.create(notification);
             }
 
-            createPushNotificationForTarget(postNotification.getEntityContent().getViewers(), postNotification);
+            createPushNotificationForTarget(post.getViewers(), entity);
 
             return null;
 
-        } else if (entity.getType() == NotificationDTO.NotificationType.following) {
+        } else if (entity.getNotificationType() == Notification.NotificationType.following) {
 
             List<User> targets = new ArrayList<>();
             targets.add(entity.getTarget());
@@ -121,6 +120,7 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
             return new AsyncResult<>(super.create(entity));
         }
         return new AsyncResult<>(super.create(entity));
+
     }
 
     /**
@@ -205,7 +205,7 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
         httpHeaders.set("Authorization", "key=" + apiKey);
 
         HttpEntity<FirebaseNotificationDTO> httpEntity = new HttpEntity<>(firebaseNotificationDTO, httpHeaders);
-        restTemplate.exchange(url, HttpMethod.POST, httpEntity, JSONObject.class);
+        restTemplate.exchange(url, HttpMethod.POST, httpEntity, JSONPObject.class);
 
     }
 
@@ -214,8 +214,12 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
         throw new UnsupportedOperationException("use createAsync() instead of this method");
     }
 
+    private Notification findByNotifTypeTargetAbsBase(Notification.NotificationType notificationType, User target, Long payloadId) {
+        return repository.findOneByTargetAndNotificationTypeAndPayloadId(target, notificationType, payloadId);
+    }
+
     @Override
-    public List<NotificationDTO> listNotificationsOfUser(Long targetID, Long lastLoadedId, Pageable pageable, User requester, boolean returnOnlyNotNotified) {
+    public List<NotificationDTO> listNotificationsOfUser(Long targetID, Long lastLoadedId, Pageable pageable, User requester, boolean returnOnlyUnseen) {
 
         User target = userService.get(targetID, requester);
 
@@ -223,21 +227,16 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
             throw new UnauthorizedException(ExceptionMessages.UnauthorizedException.UNAUTHORIZED);
         }
 
-        List<NotificationDTO> notificationDTOs = new ArrayList<>();
-
         Page<Notification> notifications;
-        if (returnOnlyNotNotified) {
-
+        if (returnOnlyUnseen) {
             if (lastLoadedId == null) {
                 notifications = repository.
-                        findByTargetAndLastUpdateTimestampGreaterThanOrderByLastUpdateTimestampDesc(target,
-                                target.getLastNotificationRefreshTimestamp(), pageable);
+                        findByTargetLastUpdateTimestampSeenOrderByLastUpdateTimestamp(target, target.getLastNotificationRefreshTimestamp(), false, pageable);
             } else {
                 notifications = repository.findByTargetUnseenPaging(target, lastLoadedId, target.getLastNotificationRefreshTimestamp(), pageable);
             }
 
         } else {
-
             if (lastLoadedId == null) {
                 notifications = repository.findByTargetOrderByLastUpdateTimestampDesc(target, pageable);
             } else {
@@ -248,77 +247,62 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
         //updating the last seen notification timestamp
         userService.updateLastNotificationRefreshTimestamp(targetID, System.currentTimeMillis(), target);
 
-        for (Notification notification : notifications) {
-            NotificationDTO notificationDTO = createDTOfromNotification(notification);
-            notificationDTOs.add(notificationDTO);
-        }
+        List<NotificationDTO> notificationDTOList = new ArrayList<>();
 
-        return notificationDTOs;
+        if (notifications != null) {
+            for (Notification notification: notifications.getContent()) {
+                this.markAsSeen(notification.getId(), target);
+                NotificationDTO notificationDTO = createDTOfromNotification(notification);
+                notificationDTOList.add(notificationDTO);
+            }
+        }
+        return notificationDTOList;
     }
 
     private NotificationDTO createDTOfromNotification(Notification notification) {
 
+        Notification.NotificationType type = notification.getNotificationType();
+
         NotificationDTO notificationDTO = new NotificationDTO();
-        notificationDTO.type = notification.getType();
+        notificationDTO.type = notification.getNotificationType();
         notificationDTO.id = notification.getId();
         notificationDTO.seen = notification.isSeen();
-
-        NotificationDTO.NotificationType type = notification.getType();
-
-        int count = 0;
-
-        if (type == NotificationDTO.NotificationType.comment) {
-
-            PostNotification postNotification = (PostNotification) notification;
-            count = commentService.countAtShoppingItem(postNotification.getEntityContent());
-            notificationDTO.contentEntityID = postNotification.getEntityContent().getId();
-            notificationDTO.photoUrls.add(postNotification.getEntityContent().getPhotos().get(0).getPath());
-
-            if(postNotification.getEntityContent().getPhotos().size() > 1) {
-                notificationDTO.photoUrls.add(postNotification.getEntityContent().getPhotos().get(1).getPath());
-            }
-
-
-        }
-        //TODO solve
-        else if (type == NotificationDTO.NotificationType.post_feedback) {
-
-            PostNotification postNotification = (PostNotification) notification;
-            for (PostFeedbackPossibility feedbackPossibility : postNotification.getEntityContent().getPostFeedbackPossibilities()) {
-                count = count + postFeedbackVoteService.countByFeedbackPossibility(feedbackPossibility, postNotification.getEntityContent().getOwner());
-            }
-            notificationDTO.contentEntityID = postNotification.getEntityContent().getId();
-
-            notificationDTO.photoUrls.add(postNotification.getEntityContent().getPhotos().get(0).getPath());
-
-            if(postNotification.getEntityContent().getPhotos().size() > 1) {
-                notificationDTO.photoUrls.add(postNotification.getEntityContent().getPhotos().get(1).getPath());
-            }
-
-        } else if (type == NotificationDTO.NotificationType.post) {
-
-            PostNotification postNotification = (PostNotification) notification;
-            User creator = postNotification.getEntityContent().getOwner();
-            notificationDTO.userDTO = new UserDTO(creator);
-            notificationDTO.contentEntityID = postNotification.getEntityContent().getId();
-
-            notificationDTO.photoUrls.add(postNotification.getEntityContent().getPhotos().get(0).getPath());
-
-            if(postNotification.getEntityContent().getPhotos().size() > 1) {
-                notificationDTO.photoUrls.add(postNotification.getEntityContent().getPhotos().get(1).getPath());
-            }
-
-        } else if (type == NotificationDTO.NotificationType.following) {
-
-            FollowingNotification followingNotification = (FollowingNotification) notification;
-            User creator = followingNotification.getEntityContent().getCreator();
-            notificationDTO.userDTO = new UserDTO(creator);
-            notificationDTO.contentEntityID = followingNotification.getEntityContent().getId();
-        }
-
-        notificationDTO.userDTO = new UserDTO(notification.getCreator());
-        notificationDTO.count = count;
+        notificationDTO.contentEntityID = notification.getPayloadId();
         notificationDTO.creationTime = notification.getLastUpdateTimestamp();
+        notificationDTO.userDTO = new UserDTO(notification.getCreator());
+
+        if (type == Notification.NotificationType.comment) {
+
+            Post post = postService.get(notification.getPayloadId());
+            notificationDTO.count = commentService.countAtPost(post);
+            notificationDTO.photoUrls.add(post.getPhotos().get(0).getPath());
+            if(post.getPhotos().size() > 1) {
+                notificationDTO.photoUrls.add(post.getPhotos().get(1).getPath());
+            }
+        }
+
+        //TODO solve
+        else if (type == Notification.NotificationType.post_feedback) {
+
+            Post post = postService.get(notification.getPayloadId());
+
+            for (PostFeedbackPossibility feedbackPossibility : post.getPostFeedbackPossibilities()) {
+                notificationDTO.count = notificationDTO.count + postFeedbackVoteService.countByFeedbackPossibility(feedbackPossibility, post.getOwner());
+            }
+            notificationDTO.photoUrls.add(post.getPhotos().get(0).getPath());
+            if(post.getPhotos().size() > 1) {
+                notificationDTO.photoUrls.add(post.getPhotos().get(1).getPath());
+            }
+
+        } else if (type == Notification.NotificationType.post) {
+
+            Post post = postService.get(notification.getPayloadId());
+
+            notificationDTO.photoUrls.add(post.getPhotos().get(0).getPath());
+            if(post.getPhotos().size() > 1) {
+                notificationDTO.photoUrls.add(post.getPhotos().get(1).getPath());
+            }
+        }
 
 
         return notificationDTO;
@@ -326,66 +310,15 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
 
 
     @Override
-    public Future<Notification> createForPostFeedback(PostFeedbackVote postFeedbackVote) {
-        PostNotification notification = new PostNotification();
-        notification.setType(NotificationDTO.NotificationType.post_feedback);
-        notification.setCreator(postFeedbackVote.getOwner());
-        notification.setTarget(postFeedbackVote.getPostFeedbackPossibility().getPost().getOwner());
-        notification.setEntityContent(postFeedbackVote.getPostFeedbackPossibility().getPost());
-        return createAsync(notification);
-    }
-
-    @Override
-    public Future<Notification> createForComment(Comment comment) {
-        PostNotification notification = new PostNotification();
-        notification.setType(NotificationDTO.NotificationType.comment);
-        notification.setCreator(comment.getOwner());
-        notification.setTarget(comment.getPost().getOwner());
-        notification.setEntityContent(comment.getPost());
-        return createAsync(notification);
-    }
-
-    @Override
-    public Future<Notification> createForPost(Post post) {
-
-        PostNotification notification = new PostNotification();
-        notification.setType(NotificationDTO.NotificationType.post);
-        notification.setCreator(post.getOwner());
-
-        notification.setEntityContent(post);
-        return createAsync(notification);
-    }
-
-    @Override
-    public Future<Notification> createForFollowing(Following following) {
-        FollowingNotification notification = new FollowingNotification();
-        notification.setType(NotificationDTO.NotificationType.following);
-        notification.setCreator(following.getCreator());
-        notification.setTarget(following.getTarget());
-        notification.setEntityContent(following);
-        return createAsync(notification);
-    }
-
-    @Override
-    public PostNotification getByTypeTargetShopping(NotificationDTO.NotificationType type, User target, Post post) {
-        return repository.findOneByTypeAndTargetAndEntityContent(type, target, post);
-    }
-
-    @Override
-    public boolean removeByShoppingItem(Post post) {
-        repository.removeNotificationsByPost(post);
+    public boolean removeByUser(User user) {
+        repository.deleteByCreator(user);
+        repository.deleteByTarget(user);
         return true;
     }
 
     @Override
-    public boolean removeByUser(User user) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean removeByFollowing(Following following) {
-        repository.removeNotificationsByFollowing(following);
+    public boolean removeByTypeAndId(Notification.NotificationType notificationType, Long payloadId) {
+        repository.deleteByNotificationTypeAndPayloadId(notificationType, payloadId);
         return true;
     }
 

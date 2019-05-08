@@ -1,29 +1,26 @@
 package com.filip.versu.service;
 
 
-import com.filip.versu.VersuApplication;
 import com.filip.versu.entity.model.*;
 import com.filip.versu.exception.ForbiddenException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {VersuApplication.class})
-@WebAppConfiguration
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(locations = "classpath:application-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class PostServiceTest {
 
@@ -35,9 +32,6 @@ public class PostServiceTest {
 
     @Autowired
     private FollowingService followingService;
-
-    @Autowired
-    private FavouriteService favouriteService;
 
     @Autowired
     private PostFeedbackVoteService postFeedbackVoteService;
@@ -54,7 +48,7 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
 
         post = postService.create(post, owner);
 
@@ -81,61 +75,61 @@ public class PostServiceTest {
     }
 
 
-    @Test
-    public void test_getDetailsBySecretUrl_shouldOK() {
-        User owner = UserServiceTest.createUser("owner");
-        owner = userService.create(owner, owner);
+//    @Test
+//    public void test_getDetailsBySecretUrl_shouldOK() {
+//        User owner = UserServiceTest.createUser("owner");
+//        owner = userService.create(owner, owner);
+//
+//        Post post = createPost(owner, null);
+//        post.setSecretUrl("generate me");
+//
+//        post = postService.create(post, owner);
+//
+//        User userWithLink = new User();
+//
+//        userWithLink.setId(-1l);//initialize with some invalid id here
+//        userWithLink.setUserRole(User.UserRole.USER_WITH_LINK);
+//        userWithLink.setSecretUrl(post.getSecretUrl());
+//
+//        Post getPost = postService.getDetailsBySecretUrl(post.getSecretUrl(), userWithLink);
+//
+//        assertTrue(getPost.equals(post));
+//    }
 
-        Post post = createShoppingItem(owner, null);
-        post.setSecretUrl("generate me");
-
-        post = postService.create(post, owner);
-
-        User userWithLink = new User();
-
-        userWithLink.setId(-1l);//initialize with some invalid id here
-        userWithLink.setUserRole(User.UserRole.USER_WITH_LINK);
-        userWithLink.setSecretUrl(post.getSecretUrl());
-
-        Post getPost = postService.getDetailsBySecretUrl(post.getSecretUrl(), userWithLink);
-
-        assertTrue(getPost.equals(post));
-    }
-
-    @Test
-    public void test_getDetailsBySecretUrl_SecretLinkGivenToNonViewer_shouldOK() {
-
-        User owner = UserServiceTest.createUser("owner");
-        owner = userService.create(owner, owner);
-
-        //this is a non-viewer user, but this user received the link.
-        User viewer = UserServiceTest.createUser("viewer1");
-        viewer = userService.create(viewer, viewer);
-        viewer.setUserRole(User.UserRole.USER_WITH_LINK);
-
-        Post post = createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
-        post.setSecretUrl("generate me");
-
-        post = postService.create(post, owner);
-
-        viewer.setSecretUrl(post.getSecretUrl());
-
-        Post getPost = postService.getDetailsBySecretUrl(post.getSecretUrl(), viewer);
-
-        assertTrue(getPost.equals(post));
-    }
+//    @Test
+//    public void test_getDetailsBySecretUrl_SecretLinkGivenToNonViewer_shouldOK() {
+//
+//        User owner = UserServiceTest.createUser("owner");
+//        owner = userService.create(owner, owner);
+//
+//        //this is a non-viewer user, but this user received the link.
+//        User viewer = UserServiceTest.createUser("viewer1");
+//        viewer = userService.create(viewer, viewer);
+//        viewer.setUserRole(User.UserRole.USER_WITH_LINK);
+//
+//        Post post = createPost(owner, null);
+//        post.setAccessType(Post.AccessType.FOLLOWERS);
+//        post.setSecretUrl("generate me");
+//
+//        post = postService.create(post, owner);
+//
+//        viewer.setSecretUrl(post.getSecretUrl());
+//
+//        Post getPost = postService.getDetailsBySecretUrl(post.getSecretUrl(), viewer);
+//
+//        assertTrue(getPost.equals(post));
+//    }
 
     @Test
     public void test_findPostsVisibleForViewer_owner_shouldOK() {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
 
         post = postService.create(post, owner);
 
-        Page<Post> shoppingItems = postService.findPostsVisibleForViewer(owner.getId(), new PageRequest(0, 10), owner, null);
+        Page<Post> shoppingItems = postService.findPostsVisibleForViewer(owner.getId(), PageRequest.of(0, 20), owner, null);
 
         assertTrue(shoppingItems.getContent().contains(post));
 
@@ -151,11 +145,11 @@ public class PostServiceTest {
         User viewer = UserServiceTest.createUser("viewer1");
         viewer = userService.create(viewer, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.publicc);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.PUBLICC);
         post = postService.create(post, owner);
 
-        Page<Post> shoppingItemPage = postService.findPostsVisibleForViewer(owner.getId(), new PageRequest(0, 20), viewer, null);
+        Page<Post> shoppingItemPage = postService.findPostsVisibleForViewer(owner.getId(),PageRequest.of(0, 20), viewer, null);
 
         /**
          * shoppingitem should be visible for anyone
@@ -164,7 +158,7 @@ public class PostServiceTest {
     }
 
     /**
-     * Owner creates a shopping item visible only for his/her followers.
+     * Owner creates a shopping item visible only for his/her FOLLOWERS.
      */
     @Test
     public void test_findPostsVisibleForViewer_followers_shouldOK() {
@@ -179,11 +173,11 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
-        Page<Post> shoppingItemPage = postService.findPostsVisibleForViewer(owner.getId(), new PageRequest(0, 20), viewer, null);
+        Page<Post> shoppingItemPage = postService.findPostsVisibleForViewer(owner.getId(),PageRequest.of(0, 20), viewer, null);
 
         assertTrue(shoppingItemPage.getContent().contains(post));
 
@@ -203,27 +197,21 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
-
-        Favourite myFavourite = new Favourite();
-        myFavourite.setPost(post);
-        myFavourite.setOwner(viewer);
 
         PostFeedbackVote postFeedbackVote = createVote(post.getPostFeedbackPossibilities().get(0), viewer);
 
-        myFavourite = favouriteService.create(myFavourite, viewer);
         postFeedbackVote = postFeedbackVoteService.create(postFeedbackVote, viewer);
 
-        Page<Post> shoppingItems = postService.findPostsVisibleForViewer(owner.getId(), new PageRequest(0, 20), viewer, null);
+        Page<Post> shoppingItems = postService.findPostsVisibleForViewer(owner.getId(),PageRequest.of(0, 20), viewer, null);
 
         assertTrue(shoppingItems.getContent().contains(post));
 
         boolean found = false;
         for (Post si : shoppingItems) {
             if (si.equals(post)) {
-                assertTrue(si.getMyFavourite().equals(myFavourite));
                 assertTrue(si.getMyPostFeedbackVote().equals(postFeedbackVote));
                 found = true;
             }
@@ -238,7 +226,7 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
 
         post = postService.create(post, owner);
 
@@ -250,7 +238,7 @@ public class PostServiceTest {
         /**
          * the deleted shopping item should not be found.
          */
-        Page<Post> shoppingItems = postService.findPostsVisibleForViewer(owner.getId(), new PageRequest(0, 10), owner, null);
+        Page<Post> shoppingItems = postService.findPostsVisibleForViewer(owner.getId(), PageRequest.of(0, 10), owner, null);
 
         assertFalse(shoppingItems.getContent().contains(post));
 
@@ -265,15 +253,15 @@ public class PostServiceTest {
         User viewer = UserServiceTest.createUser("viewer1");
         viewer = userService.create(viewer, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.publicc);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.PUBLICC);
         post = postService.create(post, owner);
 
-        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
+        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
 
         assertTrue(postForViewer != null);
         assertTrue(postForViewer.getContent().size() == 0);
-        //post should not be visible in viewer's timeline, because it's publicc and there is no following between viewer and owner
+        //post should not be visible in viewer's timeline, because it's PUBLICC and there is no following between viewer and owner
 
 
     }
@@ -294,15 +282,15 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner1, null);
-        post.setAccessType(Post.AccessType.publicc);
+        Post post = PostServiceTest.createPost(owner1, null);
+        post.setAccessType(Post.AccessType.PUBLICC);
         post = postService.create(post, owner1);
 
-        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
+        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
 
         assertTrue(postForViewer != null);
         assertTrue(postForViewer.getContent().size() == 1);
-        //post should be visible in viewer's timeline, because it's publicc
+        //post should be visible in viewer's timeline, because it's PUBLICC
 
         Post post1 = postForViewer.getContent().get(0);
 
@@ -326,11 +314,11 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
-        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
+        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
 
         assertTrue(postForViewer != null);
         assertTrue(postForViewer.getContent().contains(post));
@@ -346,8 +334,8 @@ public class PostServiceTest {
         following1 = followingService.create(following1, viewer2);
 
 
-        postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
-        Page<Post> postForViewer2 = postService.findForUserByTime(viewer2.getId(), null, new PageRequest(0, 20), viewer2);
+        postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
+        Page<Post> postForViewer2 = postService.findForUserByTime(viewer2.getId(), null,PageRequest.of(0, 20), viewer2);
 
         assertTrue(postForViewer != null);
         assertTrue(postForViewer2 != null);
@@ -373,11 +361,11 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
-        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
+        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
 
         assertTrue(postForViewer != null);
         assertTrue(postForViewer.getContent().contains(post));
@@ -385,7 +373,7 @@ public class PostServiceTest {
         //following between owner and viewer deleted
         followingService.delete(following.getId(), following.getCreator());
 
-        postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
+        postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
 
         //post shouldn't be visible for viewer anymore
         assertTrue(postForViewer != null);
@@ -417,14 +405,14 @@ public class PostServiceTest {
         following = followingService.create(following, viewer);
         following1 = followingService.create(following1, viewer2);
 
-        //creating post visible for followers
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        //creating post visible for FOLLOWERS
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
 
-        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
-        Page<Post> postForViewer2 = postService.findForUserByTime(viewer2.getId(), null, new PageRequest(0, 20), viewer2);
+        Page<Post> postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
+        Page<Post> postForViewer2 = postService.findForUserByTime(viewer2.getId(), null,PageRequest.of(0, 20), viewer2);
 
         assertTrue(postForViewer != null);
         assertTrue(postForViewer2 != null);
@@ -435,7 +423,7 @@ public class PostServiceTest {
 
 
         //post is now visible only for @viewer
-        post.setAccessType(Post.AccessType.specific);
+        post.setAccessType(Post.AccessType.SPECIFIC);
         post.getViewers().add(viewer);
 
         post = postService.update(post, owner);
@@ -446,8 +434,8 @@ public class PostServiceTest {
         assertTrue(viewers.size() == 1);
 
 
-        postForViewer = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
-        postForViewer2 = postService.findForUserByTime(viewer2.getId(), null, new PageRequest(0, 20), viewer2);
+        postForViewer = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
+        postForViewer2 = postService.findForUserByTime(viewer2.getId(), null,PageRequest.of(0, 20), viewer2);
 
         //After update: @post should be visible only for viewer
         assertTrue(postForViewer.getContent().contains(post));
@@ -472,8 +460,8 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post = postService.create(post, owner);
 
         Comment comment = new Comment();
@@ -494,7 +482,7 @@ public class PostServiceTest {
         comment2.setContent("com3");
         comment2 = commentService.create(comment2, viewer);
 
-        Page<Post> shoppingItemPage = postService.findForUserByTime(viewer.getId(), null, new PageRequest(0, 20), viewer);
+        Page<Post> shoppingItemPage = postService.findForUserByTime(viewer.getId(), null,PageRequest.of(0, 20), viewer);
 
         assertTrue(shoppingItemPage.getContent().contains(post));
 
@@ -523,10 +511,10 @@ public class PostServiceTest {
         User viewer = UserServiceTest.createUser("viewer1");
         viewer = userService.create(viewer, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.publicc);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.PUBLICC);
 
-        PostLocation location = new PostLocation();
+        GoogleLocation location = new GoogleLocation();
         location.setLatitude(48.140401);
         location.setLongitude(17.121373);
 
@@ -537,7 +525,7 @@ public class PostServiceTest {
         /**
          * Making request from Bratislava Caste, @post should be visible from here
          */
-        Page<Post> postPage = postService.findForUserByLocation(viewer.getId(), new PageRequest(0, 20), viewer, 48.142948, 17.099373);
+        Page<Post> postPage = postService.findForUserByLocation(viewer.getId(),PageRequest.of(0, 20), viewer, 48.142948, 17.099373);
 
         assertTrue(postPage.getContent().contains(post));
 
@@ -552,11 +540,11 @@ public class PostServiceTest {
         User viewer = UserServiceTest.createUser("viewer1");
         viewer = userService.create(viewer, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.publicc);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.PUBLICC);
 
         //distance to me 8.1146
-        PostLocation location = new PostLocation();
+        GoogleLocation location = new GoogleLocation();
         location.setLatitude(48.13499468);
         location.setLongitude(17.23101718);
 
@@ -564,44 +552,44 @@ public class PostServiceTest {
 
         post = postService.create(post, owner);
 
-        Post post1 = PostServiceTest.createShoppingItem(owner, null);
-        post1.setAccessType(Post.AccessType.publicc);
+        Post post1 = PostServiceTest.createPost(owner, null);
+        post1.setAccessType(Post.AccessType.PUBLICC);
 
         //distance to me 19.844
-        PostLocation location1 = new PostLocation();
+        GoogleLocation location1 = new GoogleLocation();
         location1.setLatitude(48.070942);
         location1.setLongitude(16.87559347);
         post1.setLocation(location1);
 
         post1 = postService.create(post1, owner);
 
-        Post post2 = PostServiceTest.createShoppingItem(owner, null);
-        post2.setAccessType(Post.AccessType.publicc);
+        Post post2 = PostServiceTest.createPost(owner, null);
+        post2.setAccessType(Post.AccessType.PUBLICC);
 
         //distance to me = 11.3203
-        PostLocation location2 = new PostLocation();
+        GoogleLocation location2 = new GoogleLocation();
         location2.setLatitude(48.17828152);
         location2.setLongitude(17.26331606);
         post2.setLocation(location2);
 
         post2 = postService.create(post2, owner);
 
-        Post post3 = PostServiceTest.createShoppingItem(owner, null);
-        post3.setAccessType(Post.AccessType.publicc);
+        Post post3 = PostServiceTest.createPost(owner, null);
+        post3.setAccessType(Post.AccessType.PUBLICC);
 
         //distance to me = 17.8431
-        PostLocation location3 = new PostLocation();
+        GoogleLocation location3 = new GoogleLocation();
         location3.setLatitude(47.98964446);
         location3.setLongitude(17.03822233);
         post3.setLocation(location3);
 
         post3 = postService.create(post3, owner);
 
-        Post post4 = PostServiceTest.createShoppingItem(owner, null);
-        post4.setAccessType(Post.AccessType.publicc);
+        Post post4 = PostServiceTest.createPost(owner, null);
+        post4.setAccessType(Post.AccessType.PUBLICC);
 
         //distance to me = 14.1401
-        PostLocation location4 = new PostLocation();
+        GoogleLocation location4 = new GoogleLocation();
         location4.setLatitude(48.24567076);
         location4.setLongitude(17.01594667);
         post4.setLocation(location4);
@@ -610,7 +598,7 @@ public class PostServiceTest {
 
         //my location = 48.139991, 17.121951
 
-        Page<Post> postPage = postService.findForUserByLocation(viewer.getId(), new PageRequest(0, 2), viewer, 48.139991, 17.121951);
+        Page<Post> postPage = postService.findForUserByLocation(viewer.getId(),  PageRequest.of(0, 2), viewer, 48.139991, 17.121951);
         //this postPage should contain the two nearest post
         assertTrue(postPage.getContent().contains(post));
         assertTrue(postPage.getContent().contains(post2));
@@ -618,14 +606,14 @@ public class PostServiceTest {
         assertFalse(postPage.getContent().contains(post3));
         assertFalse(postPage.getContent().contains(post4));
 
-        postPage = postService.findForUserByLocation(viewer.getId(), new PageRequest(1, 2), viewer, 48.139991, 17.121951);
+        postPage = postService.findForUserByLocation(viewer.getId(),  PageRequest.of(1, 2), viewer, 48.139991, 17.121951);
         assertFalse(postPage.getContent().contains(post));
         assertFalse(postPage.getContent().contains(post1));
         assertFalse(postPage.getContent().contains(post2));
         assertTrue(postPage.getContent().contains(post3));
         assertTrue(postPage.getContent().contains(post4));
 
-        postPage = postService.findForUserByLocation(viewer.getId(), new PageRequest(2, 2), viewer, 48.139991, 17.121951);
+        postPage = postService.findForUserByLocation(viewer.getId(),  PageRequest.of(2, 2), viewer, 48.139991, 17.121951);
         assertFalse(postPage.getContent().contains(post));
         assertTrue(postPage.getContent().contains(post1));
         assertFalse(postPage.getContent().contains(post2));
@@ -646,10 +634,10 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
+        Post post = PostServiceTest.createPost(owner, null);
 
-        post.setAccessType(Post.AccessType.followers);
-        post.getPostFeedbackPossibilities().clear();
+        post.setAccessType(Post.AccessType.FOLLOWERS);
+        post.setPostFeedbackPossibilities(new ArrayList<>());
         post.getPostFeedbackPossibilities().add(createPossibility("possibilityInVS1", post));
         post.getPostFeedbackPossibilities().add(createPossibility("possibilityInVS2", post));
 
@@ -698,33 +686,33 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
+        Post post = PostServiceTest.createPost(owner, null);
 
-        post.setAccessType(Post.AccessType.followers);
-        post.getPostFeedbackPossibilities().clear();
+        post.setAccessType(Post.AccessType.FOLLOWERS);
+        post.setPostFeedbackPossibilities(new ArrayList<>());
         post.getPostFeedbackPossibilities().add(createPossibility("possA", post));
         post.getPostFeedbackPossibilities().add(createPossibility("possB", post));
 
         post = postService.create(post, owner);
 
-        Post post1 = PostServiceTest.createShoppingItem(owner, null);
-        post1.setAccessType(Post.AccessType.followers);
+        Post post1 = PostServiceTest.createPost(owner, null);
+        post1.setAccessType(Post.AccessType.FOLLOWERS);
         post1.getPostFeedbackPossibilities().clear();
         post1.getPostFeedbackPossibilities().add(createPossibility("possA", post1));
         post1.getPostFeedbackPossibilities().add(createPossibility("smthngOther", post1));
 
         post1 = postService.create(post1, owner);
 
-        Post post2 = PostServiceTest.createShoppingItem(owner, null);
-        post2.setAccessType(Post.AccessType.followers);
+        Post post2 = PostServiceTest.createPost(owner, null);
+        post2.setAccessType(Post.AccessType.FOLLOWERS);
         post2.getPostFeedbackPossibilities().clear();
         post2.getPostFeedbackPossibilities().add(createPossibility("possB", post2));
         post2.getPostFeedbackPossibilities().add(createPossibility("blabla", post2));
 
         post2 = postService.create(post2, owner);
 
-        Post post3 = PostServiceTest.createShoppingItem(owner, null);
-        post3.setAccessType(Post.AccessType.followers);
+        Post post3 = PostServiceTest.createPost(owner, null);
+        post3.setAccessType(Post.AccessType.FOLLOWERS);
 
         post3.getPostFeedbackPossibilities().clear();
         post3.getPostFeedbackPossibilities().add(createPossibility("blabla2", post3));
@@ -732,8 +720,8 @@ public class PostServiceTest {
 
         post3 = postService.create(post3, owner);
 
-        Post post4 = PostServiceTest.createShoppingItem(owner, null);
-        post4.setAccessType(Post.AccessType.followers);
+        Post post4 = PostServiceTest.createPost(owner, null);
+        post4.setAccessType(Post.AccessType.FOLLOWERS);
 
         post4.getPostFeedbackPossibilities().clear();
         post4.getPostFeedbackPossibilities().add(createPossibility("possA", post4));
@@ -743,7 +731,7 @@ public class PostServiceTest {
 
         post4 = postService.create(post4, owner);
 
-        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("possa", "possb", viewer, new PageRequest(0, 20));
+        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("possa", "possb", viewer,PageRequest.of(0, 20));
 
         assertTrue(postPage != null);
         assertTrue(postPage.getContent().size() == 4);
@@ -769,19 +757,19 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
+        Post post = PostServiceTest.createPost(owner, null);
 
-        post.setAccessType(Post.AccessType.followers);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
 
-        post.getPostFeedbackPossibilities().clear();
+        post.setPostFeedbackPossibilities(new ArrayList<>());
         post.getPostFeedbackPossibilities().add(createPossibility("possA", post));
         post.getPostFeedbackPossibilities().add(createPossibility("possB", post));
 
 
         post = postService.create(post, owner);
 
-        Post post2 = PostServiceTest.createShoppingItem(owner, null);
-        post2.setAccessType(Post.AccessType.followers);
+        Post post2 = PostServiceTest.createPost(owner, null);
+        post2.setAccessType(Post.AccessType.FOLLOWERS);
 
         post2.getPostFeedbackPossibilities().clear();
         post2.getPostFeedbackPossibilities().add(createPossibility("blabla2", post));
@@ -789,7 +777,7 @@ public class PostServiceTest {
 
         post2 = postService.create(post2, owner);
 
-        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("possa", null, viewer, new PageRequest(0, 20));
+        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("possa", null, viewer,PageRequest.of(0, 20));
 
         assertTrue(postPage != null);
         assertTrue(postPage.getContent().size() == 1);
@@ -815,18 +803,18 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
 
 
-        post.getPostFeedbackPossibilities().clear();
+        post.setPostFeedbackPossibilities(new ArrayList<>());
         post.getPostFeedbackPossibilities().add(createPossibility("poss1", post));
         post.getPostFeedbackPossibilities().add(createPossibility("poss2", post));
 
         post = postService.create(post, owner);
 
-        Post publicPost = PostServiceTest.createShoppingItem(owner, null);
-        publicPost.setAccessType(Post.AccessType.publicc);
+        Post publicPost = PostServiceTest.createPost(owner, null);
+        publicPost.setAccessType(Post.AccessType.PUBLICC);
 
         publicPost.getPostFeedbackPossibilities().clear();
         publicPost.getPostFeedbackPossibilities().add(createPossibility("poss1", publicPost));
@@ -835,10 +823,10 @@ public class PostServiceTest {
 
         publicPost = postService.create(publicPost, owner);
 
-        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("poss1", null, viewer, new PageRequest(0, 20));
-        Page<Post> postPage1 = postService.findByFeedbackPossibilitiesName("poss1", null, nonViewer, new PageRequest(0, 20));
+        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("poss1", null, viewer,PageRequest.of(0, 20));
+        Page<Post> postPage1 = postService.findByFeedbackPossibilitiesName("poss1", null, nonViewer,PageRequest.of(0, 20));
 
-        Page<Post> postPage2 = postService.findByFeedbackPossibilitiesName("poss1", null, owner, new PageRequest(0, 20));
+        Page<Post> postPage2 = postService.findByFeedbackPossibilitiesName("poss1", null, owner,PageRequest.of(0, 20));
 
         /**
          * viewer can see both publicPost and post
@@ -875,25 +863,25 @@ public class PostServiceTest {
 
         String googleID = "ChIJhT-9kj-JbEcRFjPcvf5V47s";
 
-        PostLocation postLocation = new PostLocation();
+        GoogleLocation postLocation = new GoogleLocation();
         postLocation.setGoogleID(googleID);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post.setLocation(postLocation);
 
         post = postService.create(post, owner);
 
-        PostLocation postLocation1 = new PostLocation();
+        GoogleLocation postLocation1 = new GoogleLocation();
         postLocation.setGoogleID("some id here");
 
-        Post post2 = PostServiceTest.createShoppingItem(owner, null);
-        post2.setAccessType(Post.AccessType.followers);
+        Post post2 = PostServiceTest.createPost(owner, null);
+        post2.setAccessType(Post.AccessType.FOLLOWERS);
         post2.setLocation(postLocation1);
 
         post2 = postService.create(post2, owner);
 
-        Page<Post> postPage = postService.findByLocationGoogleId(googleID, viewer, new PageRequest(0, 20), null);
+        Page<Post> postPage = postService.findByLocationGoogleId(googleID, viewer,PageRequest.of(0, 20), null);
 
         assertTrue(postPage.getContent().contains(post));
         assertFalse(postPage.getContent().contains(post2));
@@ -913,26 +901,26 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        PostLocation location = new PostLocation();
+        GoogleLocation location = new GoogleLocation();
         location.setGoogleID("ChIJhT-9kj-JbEcRFjPcvf5V47s");
         location.setLatitude(48.14050109999999);
         location.setLongitude(17.1213257);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
-        post.setAccessType(Post.AccessType.followers);
+        Post post = PostServiceTest.createPost(owner, null);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post.setLocation(location);
 
         //post is created in Bratislava, Eurovea
         post = postService.create(post, owner);
 
 
-        PostLocation postLocation = new PostLocation();
+        GoogleLocation postLocation = new GoogleLocation();
         postLocation.setGoogleID("ChIJueLdxlRUbEcRck4wd2eRmCo");
         postLocation.setLatitude(48.120252);
         postLocation.setLongitude(16.5619684);
 
-        Post post1 = PostServiceTest.createShoppingItem(owner, null);
-        post1.setAccessType(Post.AccessType.followers);
+        Post post1 = PostServiceTest.createPost(owner, null);
+        post1.setAccessType(Post.AccessType.FOLLOWERS);
         post1.setLocation(postLocation);
 
         //post is created in Schwechat, Austria
@@ -941,7 +929,7 @@ public class PostServiceTest {
         String googleIDBratislava = "ChIJl2HKCjaJbEcRaEOI_YKbH2M";
 
         //find posts in Bratislava
-        Page<Post> postPage = postService.findByLocationGoogleId(googleIDBratislava, viewer, new PageRequest(0, 20), null);
+        Page<Post> postPage = postService.findByLocationGoogleId(googleIDBratislava, viewer,PageRequest.of(0, 20), null);
 
         //postPage should contain post created in Bratislava, Eurovea
         assertTrue(postPage.getContent().contains(post));
@@ -961,7 +949,7 @@ public class PostServiceTest {
         List<User> viewers = new ArrayList<>();
         viewers.add(viewer);
 
-        Post post = createShoppingItem(owner, viewers);
+        Post post = createPost(owner, viewers);
 
         post = postService.create(post, owner);
 
@@ -977,7 +965,7 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
 
         post = postService.create(post, owner);
 
@@ -992,7 +980,7 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
 
         post = postService.create(post, owner);
 
@@ -1014,8 +1002,8 @@ public class PostServiceTest {
         List<User> viewers = new ArrayList<>();
         viewers.add(viewer);
 
-        Post post = createShoppingItem(owner, viewers);
-        post.setAccessType(Post.AccessType.specific);
+        Post post = createPost(owner, viewers);
+        post.setAccessType(Post.AccessType.SPECIFIC);
 
         post = postService.create(post, owner);
 
@@ -1050,8 +1038,8 @@ public class PostServiceTest {
         viewers.add(viewer);
         viewers.add(viewer2);
 
-        Post post = createShoppingItem(owner, viewers);
-        post.setAccessType(Post.AccessType.specific);
+        Post post = createPost(owner, viewers);
+        post.setAccessType(Post.AccessType.SPECIFIC);
 
         post = postService.create(post, owner);
 
@@ -1078,7 +1066,7 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
         post = postService.create(post, owner);
         post.setChosenFeedbackPossibility(post.getPostFeedbackPossibilities().get(0));
 
@@ -1096,10 +1084,10 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
         post = postService.create(post, owner);
 
-        Post post1 = createShoppingItem(owner, null);
+        Post post1 = createPost(owner, null);
         post1.getPostFeedbackPossibilities().get(0).setName("bla bla bla");
         post1 = postService.create(post1, owner);
 
@@ -1117,7 +1105,7 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
 
         post = postService.create(post, owner);
 
@@ -1134,7 +1122,7 @@ public class PostServiceTest {
         User owner = UserServiceTest.createUser("owner");
         owner = userService.create(owner, owner);
 
-        Post post = createShoppingItem(owner, null);
+        Post post = createPost(owner, null);
 
         post = postService.create(post, owner);
 
@@ -1160,16 +1148,16 @@ public class PostServiceTest {
 
         following = followingService.create(following, viewer);
 
-        Post post = PostServiceTest.createShoppingItem(owner, null);
+        Post post = PostServiceTest.createPost(owner, null);
 
-        post.setAccessType(Post.AccessType.followers);
+        post.setAccessType(Post.AccessType.FOLLOWERS);
         post.getPostFeedbackPossibilities().clear();
         post.getPostFeedbackPossibilities().add(createPossibility("possA", post));
         post.getPostFeedbackPossibilities().add(createPossibility("possB", post));
 
         post = postService.create(post, owner);
 
-        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("possa", "possb", viewer, new PageRequest(0, 20));
+        Page<Post> postPage = postService.findByFeedbackPossibilitiesName("possa", "possb", viewer,PageRequest.of(0, 20));
 
         //find by possibilities successfully returned post
         assertTrue(postPage != null);
@@ -1196,7 +1184,7 @@ public class PostServiceTest {
     }
 
 
-    public static Post createShoppingItem(User owner, List<User> viewers) {
+    public static Post createPost(User owner, List<User> viewers) {
         Post.Timer timer = new Post.Timer(System.currentTimeMillis(), 3600 * 1000);
         PostPhoto photo = new PostPhoto("http://myserver.com/somephoto.jpg", System.currentTimeMillis());
 
@@ -1214,17 +1202,18 @@ public class PostServiceTest {
         possibility2.setName("bad");
         possibility2.setPost(post);
 
+        post.setPostFeedbackPossibilities(new ArrayList<>());
         post.getPostFeedbackPossibilities().add(possibility1);
         post.getPostFeedbackPossibilities().add(possibility2);
 
 
         post.setOwner(owner);
-        post.setAccessType(Post.AccessType.specific);
+        post.setAccessType(Post.AccessType.SPECIFIC);
         post.setPhotos(photos);
         post.setTimer(timer);
         post.setDescription("some desc");
 
-        PostLocation location = new PostLocation();
+        GoogleLocation location = new GoogleLocation();
         location.setGoogleID("ChIJhT-9kj-JbEcRFjPcvf5V47s");
         location.setLatitude(48.14050109999999);
         location.setLongitude(17.1213257);
@@ -1239,7 +1228,7 @@ public class PostServiceTest {
     }
 
     public static Post createVotingShoppingItem(User owner, List<User> viewers) {
-        Post post = createShoppingItem(owner, viewers);
+        Post post = createPost(owner, viewers);
 
         List<PostPhoto> photos = new ArrayList<>();
         PostPhoto photo = new PostPhoto("http://myserver.com/somephoto.jpg", System.currentTimeMillis());
