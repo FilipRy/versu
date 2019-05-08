@@ -6,14 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="backend" />
         <module name="frontend" />
-        <module name="resource_service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="authorization_service" target="1.8" />
+      <module name="backend" target="1.8" />
       <module name="frontend" target="1.8" />
-      <module name="resource_service" target="1.8" />
       <module name="versu" target="1.5" />
     </bytecodeTargetLevel>
   </component>

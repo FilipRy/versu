@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/backend/backend.iml" filepath="$PROJECT_DIR$/backend/backend.iml" />
       <module fileurl="file://$PROJECT_DIR$/frontend/frontend.iml" filepath="$PROJECT_DIR$/frontend/frontend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/resource_service/resource_service.iml" filepath="$PROJECT_DIR$/resource_service/resource_service.iml" />
       <module fileurl="file://$PROJECT_DIR$/versu.iml" filepath="$PROJECT_DIR$/versu.iml" />
     </modules>
   </component>

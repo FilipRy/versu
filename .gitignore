@@ -1,4 +1,8 @@
 
+backend/src/main/resources/application-docker.properties
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-test.properties
+
 # Created by https://www.gitignore.io/api/node,java,maven,intellij
 # Edit at https://www.gitignore.io/?templates=node,java,maven,intellij
 

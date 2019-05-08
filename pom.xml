@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <modules>
-        <module>resource_service</module>
+        <module>backend</module>
         <module>frontend</module>
     </modules>
 

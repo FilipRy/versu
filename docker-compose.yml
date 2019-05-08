@@ -1,0 +1,21 @@
+version: '3'
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mmysql
+
+  mmysql:
+    container_name: mmysql
+    build:
+      context: ./database
+      dockerfile: Dockerfile-mysql
+    ports:
+      - "3306:3306"
