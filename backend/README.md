@@ -23,7 +23,7 @@ $ mvn -Dmaven.test.skip=true package
 #### In Docker container
 1. Build a docker image
 ```
-docker build . -t versu_backend
+$ docker build . -t versu_backend
 ```
 ### Configuration
 Use the EXAMPLE-application-\*.properties when configuring the application (* stands for profile).  You should override the `google.apikey` property to set an api key used to access Google Geolocation API. If you run the application in 'local' or 'test' profile you have to provide an url path to a running instance of a MySQL database. You can run the instance in docker container by executing the `start-db-docker.sh` script in `/database`. If you run the application in 'docker' profile the database instance is started automatically by `docker-compose`. See Running for further information.
@@ -31,8 +31,10 @@ Use the EXAMPLE-application-\*.properties when configuring the application (* st
 P.S Don't forget to remove the EXAMPLE- prefix before running the app!
 
 ## Running the tests
+1. Run an instanse of MySQL database (see Configuration Section)
+2. Execute the tests
 ```
-mvn clean verify -Dspring.profiles.active=test
+$ mvn clean verify -Dspring.profiles.active=test
 ```
 
 ## Running
@@ -46,11 +48,11 @@ $ java -jar target/backend-0.8.0.jar --spring.profiles.active=local
 ### In Docker container
 1. Navigate to upper directory
 ```
-cd ..
+$ cd ..
 ```
 2. Run the application and its dependencies via docker-compose
 ```
-docker-compose up
+$ docker-compose up
 ```
 
 ## Documentation

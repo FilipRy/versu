@@ -7,7 +7,7 @@ COPY pom.xml .
 COPY src src
 
 RUN chmod +x mvnw
-RUN ./mvnw install -DskipTests
+RUN ./mvnw package -DskipTests
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 FROM openjdk:8-jdk-alpine
