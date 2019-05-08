@@ -3,6 +3,9 @@ package com.filip.versu.bootstrap;
 import com.filip.versu.entity.model.*;
 import com.filip.versu.repository.CommentRepository;
 import com.filip.versu.service.*;
+import com.filip.versu.service.impl.NotificationServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -11,10 +14,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
 public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent> {
+
+    private final static Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
+
 
     @Autowired
     private UserService userService;
@@ -45,17 +52,21 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
 
         String ddlProperty = environment.getProperty("spring.jpa.hibernate.ddl-auto");
 
+        List<String> profiles = Arrays.asList(environment.getActiveProfiles());
+
+
         commentRepository.setNamesToUtf8Mb4();//this is a hack to set name, otherwise emojis cannot be saved
 
-        if (ddlProperty.contains("create") ) {
+        if (ddlProperty.contains("create") && !profiles.contains("test") ) {
             init();
         }
-
 
     }
 
 
     private void init() {
+
+        logger.info("Initializing DB with test data");
 
         List<User> registeredUsers = new ArrayList<>();
 

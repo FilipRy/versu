@@ -132,13 +132,25 @@
 					<profiles>
 						<profile>docker</profile>
 						<profile>local</profile>
-						<!--<profile>prod</profile>-->
+						<profile>test</profile>
 					</profiles>
 				</configuration>
 				<executions>
 					<execution>
 						<goals>
 							<goal>repackage</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>pre-integration-test</id>
+						<goals>
+							<goal>start</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-integration-test</id>
+						<goals>
+							<goal>stop</goal>
 						</goals>
 					</execution>
 				</executions>
