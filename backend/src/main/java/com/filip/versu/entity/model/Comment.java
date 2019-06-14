@@ -43,6 +43,7 @@ public class Comment extends AbsBaseEntityWithOwner<Long> {
     public Comment(CommentDTO other) {
         super(other);
         this.content = other.content;
+        this.post = new Post(other.postDTO);
     }
 
     @Override
