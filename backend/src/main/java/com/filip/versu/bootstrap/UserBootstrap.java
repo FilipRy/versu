@@ -205,7 +205,6 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
     }
 
     public static Post createShoppingItem(User owner, List<User> viewers) {
-        Post.Timer timer = new Post.Timer(System.currentTimeMillis(), 3600 * 1000);
         PostPhoto photo = new PostPhoto("https://pbs.twimg.com/media/CFJ_k30WYAAPd4Z.jpg", System.currentTimeMillis());
 
         Post post = new Post();
@@ -231,7 +230,6 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
         post.setOwner(owner);
         post.setAccessType(Post.AccessType.SPECIFIC);
         post.setPhotos(photos);
-        post.setTimer(timer);
         post.setDescription("some desc");
 
         GoogleLocation location = new GoogleLocation();

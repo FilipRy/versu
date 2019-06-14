@@ -64,7 +64,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
                 .authorizedGrantTypes ("password", "authorization_code", "refresh_token", "implicit")
                 .authorities ("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT", "USER")
                 .scopes ("read", "write")
-                .accessTokenValiditySeconds(300)
+                .accessTokenValiditySeconds(THIRTY_DAYS)
                 .refreshTokenValiditySeconds(THIRTY_DAYS);
 
     }

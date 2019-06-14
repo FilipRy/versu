@@ -1185,7 +1185,6 @@ public class PostServiceTest {
 
 
     public static Post createPost(User owner, List<User> viewers) {
-        Post.Timer timer = new Post.Timer(System.currentTimeMillis(), 3600 * 1000);
         PostPhoto photo = new PostPhoto("http://myserver.com/somephoto.jpg", System.currentTimeMillis());
 
         Post post = new Post();
@@ -1210,7 +1209,6 @@ public class PostServiceTest {
         post.setOwner(owner);
         post.setAccessType(Post.AccessType.SPECIFIC);
         post.setPhotos(photos);
-        post.setTimer(timer);
         post.setDescription("some desc");
 
         GoogleLocation location = new GoogleLocation();

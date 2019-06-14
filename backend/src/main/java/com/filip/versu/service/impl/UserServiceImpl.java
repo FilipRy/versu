@@ -21,6 +21,8 @@ import com.filip.versu.service.*;
 import com.filip.versu.service.abs.GoogleLocationService;
 import com.filip.versu.service.impl.abs.AbsCrudServiceImpl;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -40,6 +42,9 @@ import java.util.Arrays;
 
 @Service
 public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserRepository> implements UserService {
+
+    private final static Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
 
     @Autowired
     private FollowingService followingService;
@@ -111,6 +116,8 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
 
         entity.setRoles(Arrays.asList(new UserRole("USER")));
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+
+        logger.info("User with name: " + entity.getUsername() + " has been registered.");
 
         return super.create(entity);
     }
@@ -203,6 +210,14 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
     }
 
     @Override
+    public User findOneByUsername(String name, User requester) {
+        if (!requester.getUsername().equals(name)) {
+            throw new UnauthorizedException(ExceptionMessages.UnauthorizedException.UNAUTHORIZED);
+        }
+        return repository.findOneByUsername(name);
+    }
+
+    @Override
     public User findOneByUsername(String name) {
         return repository.findOneByUsername(name);
     }
@@ -266,7 +281,9 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
     public User transferUpdateFields(User getEntity, User updatedEntity) {
         getEntity.setUsername(updatedEntity.getUsername());
         getEntity.setEmail(updatedEntity.getEmail());
-        getEntity.setPassword(updatedEntity.getPassword());
+        if (updatedEntity.getPassword() != null) {
+            getEntity.setPassword(updatedEntity.getPassword());
+        }
         getEntity.setQuote(updatedEntity.getQuote());
 
         if (updatedEntity.getLocation() != null) {

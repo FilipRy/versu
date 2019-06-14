@@ -65,12 +65,6 @@ public class PostValidation extends AbsBaseEntityWithOwnerValidation<Long, PostD
             photoValidation.validate(photo);
         }
 
-        if (param.timer.getStart() <= 0 || param.timer.getDuration() <= 0)
-
-        {
-            throw new ParameterException(ExceptionMessages.ParameterException.SHOPPING_ITEM_TIMER);
-        }
-
         if (param.description != null && param.description.length() > 255) {
             throw new ParameterException(ExceptionMessages.ParameterException.SHOPPING_ITEM_DESC);
         }

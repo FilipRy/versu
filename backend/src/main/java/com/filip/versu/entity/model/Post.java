@@ -55,14 +55,6 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
     private long publishTime;
 
     /**
-     * Timer represents how long the shopping item remains visible.
-     */
-    @Embedded
-    @Getter
-    @Setter
-    private Timer timer;
-
-    /**
      * This is a location of this post.
      */
     @Getter
@@ -134,7 +126,6 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
         super(other);
         this.description = other.description;
         this.publishTime = other.publishTime;
-        this.timer = other.timer;
         this.accessType = other.accessType;
         this.secretUrl = other.secretUrl;
 
@@ -157,6 +148,7 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
             }
         }
 
+        this.postFeedbackPossibilities = new ArrayList<>();
         //adding possibilities for voting
         for(PostFeedbackPossibilityDTO postFeedbackPossibilityDTO: other.postFeedbackPossibilities) {
             PostFeedbackPossibility postFeedbackPossibility = new PostFeedbackPossibility(postFeedbackPossibilityDTO, true);
@@ -190,7 +182,6 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
         if (publishTime != that.publishTime) return false;
         if (isDeleted != that.isDeleted) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (timer != null ? !timer.equals(that.timer) : that.timer != null) return false;
         if(photos != null) {
             if(that.photos != null) {
                 for(PostPhoto photo: photos) {
@@ -220,48 +211,6 @@ public class Post extends AbsBaseEntityWithOwner<Long> {
         }
         return accessType == that.accessType;
 
-    }
-
-    /**
-     * This is the timer, representing the time an shopping item remains visible.
-     */
-    @Embeddable
-    public static class Timer {
-
-        /**
-         * The UTC time, when this Timer was started.
-         */
-        @Getter
-        @Setter
-        private long start;
-
-        /**
-         * The UTC time representing the duration of the timer.
-         */
-        @Getter
-        @Setter
-        private long duration;
-
-        public Timer() {
-
-        }
-
-        public Timer(long start, long duration) {
-            this.start = start;
-            this.duration = duration;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Timer timer = (Timer) o;
-
-            if (start != timer.start) return false;
-            return duration == timer.duration;
-
-        }
     }
 
 }

@@ -16,11 +16,6 @@ public class PostDTO extends AbsBaseEntityWithOwnerDTO<Long> {
      */
     public long publishTime;
 
-    /**
-     * Timer represents how long the shopping item remains visible.
-     */
-    public Post.Timer timer;
-
     public GoogleLocationDTO location;
 
     public List<PostPhotoDTO> photos;
@@ -54,7 +49,6 @@ public class PostDTO extends AbsBaseEntityWithOwnerDTO<Long> {
         super(other);
         this.description = other.getDescription();
         this.publishTime = other.getPublishTime();
-        this.timer = other.getTimer();
         this.secretUrl = other.getSecretUrl();
         if(other.getLocation() != null) {
             this.location = new GoogleLocationDTO(other.getLocation());

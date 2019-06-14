@@ -65,7 +65,6 @@ public class ExceptionMessages {
 
         public static final String SHOPPING_ITEM_ACCESS_TYPE = "ParameterException_SHOPPING_ITEM_ACCESS_TYPE";
         public static final String SHOPPING_ITEM_PHOTO = "ParameterException_SHOPPING_ITEM_PHOTO";
-        public static final String SHOPPING_ITEM_TIMER = "ParameterException_SHOPPING_ITEM_TIMER";
         public static final String SHOPPING_ITEM_DESC = "ParameterException_SHOPPING_ITEM_DESC";
         public static final String POST_FEEDBACK_POSSIBILITIES = "ParameterException_POST_FEEDBACK_POSSIBILITIES";
 

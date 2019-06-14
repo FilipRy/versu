@@ -26,7 +26,9 @@ public class SingupController extends AbsAuthController<Long, User, UserDTO> {
         user.setRoles(Arrays.asList(new UserRole("USER")));
 
         user = userService.create(user, user);
-        return new UserDTO(user);
+        UserDTO createdUserDTO = new UserDTO(user);
+        createdUserDTO.password = userDTO.password;
+        return createdUserDTO;
     }
 
 

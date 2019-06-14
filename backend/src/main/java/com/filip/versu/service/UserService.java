@@ -14,6 +14,8 @@ public interface UserService extends CrudAuthService<User, Long>, UserDetailsSer
 
     public void uploadProfilePhoto(User user);
 
+    public User findOneByUsername(String name, User requester);
+
     public User findOneByUsername(String name);
 
     public User findOneByEmail(String email);

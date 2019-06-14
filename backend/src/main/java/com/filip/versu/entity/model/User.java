@@ -159,7 +159,6 @@ public class User extends AbsBaseEntity<Long> implements UserDetails {
         return true;
     }
 
-
     @Override
     public String toString() {
         return "User{" +

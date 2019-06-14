@@ -92,6 +92,15 @@ public class UserController extends AbsAuthController<Long, User, UserDTO> {
         return mapModelPageToDTOPage(userPage, pageable);
     }
 
+    @RequestMapping(value = "/findOneByName/{name}", method = RequestMethod.GET)
+    public UserDTO findOneByName(@PathVariable("name") String name) {
+        User requester = authenticateUser();
+        User returnedUser = userService.findOneByUsername(name, requester);
+
+        UserDTO returnedUserDTO = new UserDTO(returnedUser);
+        return returnedUserDTO;
+    }
+
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public User get(@PathVariable("id") Long id) {
         User requester = authenticateUser();

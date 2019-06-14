@@ -421,8 +421,6 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
             getEntity.setSecretUrl(generatePublicUrl(getEntity, getEntity.getOwner()));
         }
 
-        getEntity.setTimer(updatedEntity.getTimer());
-
         if (updatedEntity.getAccessType() == Post.AccessType.SPECIFIC) {
             getEntity.setViewers(updatedEntity.getViewers());
             verifyExistingViewers(getEntity);
