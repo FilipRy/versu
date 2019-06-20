@@ -62,7 +62,7 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
     @Autowired
     public NotificationServiceImpl(Environment env) {
         senderId = env.getProperty("firebase.sender_id");
-        apiKey = env.getProperty("google.apikey");
+        apiKey = env.getProperty("firebase.api_key");
     }
 
     @Async
@@ -155,7 +155,7 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
-        String url = "https://android.googleapis.com/gcm/notification";
+        String url = "https://fcm.googleapis.com/fcm/notification";
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("Content-Type", "application/json");
@@ -205,7 +205,8 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
         httpHeaders.set("Authorization", "key=" + apiKey);
 
         HttpEntity<FirebaseNotificationDTO> httpEntity = new HttpEntity<>(firebaseNotificationDTO, httpHeaders);
-        restTemplate.exchange(url, HttpMethod.POST, httpEntity, JSONPObject.class);
+        ResponseEntity<JSONPObject> responseEntity = restTemplate.exchange(url, HttpMethod.POST, httpEntity, JSONPObject.class);
+        responseEntity.getStatusCode();
 
     }
 
