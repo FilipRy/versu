@@ -3,10 +3,10 @@ package com.filip.versu.service.impl;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.HttpMethod;
-import com.amazonaws.SDKGlobalConfiguration;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ResponseHeaderOverrides;
 import com.filip.versu.entity.dto.URLWrapperDTO;
@@ -17,7 +17,6 @@ import com.filip.versu.exception.ForbiddenException;
 import com.filip.versu.exception.UnauthorizedException;
 import com.filip.versu.repository.PostRepository;
 import com.filip.versu.service.*;
-import com.filip.versu.service.NotificationService;
 import com.filip.versu.service.abs.GoogleLocationService;
 import com.filip.versu.service.impl.abs.AbsCrudAuthServiceImpl;
 import com.google.common.collect.Lists;
@@ -498,9 +497,13 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
     @Override
     public URLWrapperDTO generatePreSignedURL(URLWrapperDTO objectKeys) {
 
-        System.setProperty(SDKGlobalConfiguration.ENABLE_S3_SIGV4_SYSTEM_PROPERTY, "true");
         BasicAWSCredentials awsCredentials = new BasicAWSCredentials(amazonS3AccessKey, amazonS3SecretKey);
-        AmazonS3 s3client = new AmazonS3Client(awsCredentials);
+
+
+        AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
+                .withRegion("eu-central-1")
+                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                .build();
         try {
 
             for (URLWrapperDTO.PhotoObject photoObject : objectKeys.objectKeys) {
@@ -512,18 +515,17 @@ public class PostServiceImpl extends AbsCrudAuthServiceImpl<Post, Long, PostRepo
                 milliSeconds += PRE_SIGNED_URL_TTL;
                 expiration.setTime(milliSeconds);
 
-                GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, photoObject.key);
-                generatePresignedUrlRequest.setMethod(HttpMethod.PUT);
-                generatePresignedUrlRequest.setExpiration(expiration);
-                generatePresignedUrlRequest.setContentType(photoObject.contentType);
-
                 ResponseHeaderOverrides headerOverrides = new ResponseHeaderOverrides();
                 headerOverrides.setContentType(photoObject.contentType);
 
-                generatePresignedUrlRequest.setResponseHeaders(headerOverrides);
+                GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, photoObject.key)
+                        .withMethod(HttpMethod.PUT)
+                        .withExpiration(expiration)
+                        .withContentType(photoObject.contentType)
+                        .withResponseHeaders(headerOverrides);
 
+                URL url = s3Client.generatePresignedUrl(generatePresignedUrlRequest);
 
-                URL url = s3client.generatePresignedUrl(generatePresignedUrlRequest);
 
                 if (logger.isInfoEnabled()) {
                     logger.info("Pre-Signed URL = " + url.toString());

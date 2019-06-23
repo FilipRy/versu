@@ -184,7 +184,7 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
     private void pushNotificationToDevices(String notificationKey, NotificationDTO notificationDTO) {
 
         if(logger.isInfoEnabled()) {
-            logger.info("Pushing notification " + notificationDTO.getId() + " to devices");
+            logger.info("Pushing " +  notificationDTO.type.name() +  " notification about entity with " + notificationDTO.contentEntityID + " to devices");
         }
 
         FirebaseNotificationDTO firebaseNotificationDTO = new FirebaseNotificationDTO();
@@ -205,9 +205,7 @@ public class NotificationServiceImpl extends AbsCrudServiceImpl<Notification, Lo
         httpHeaders.set("Authorization", "key=" + apiKey);
 
         HttpEntity<FirebaseNotificationDTO> httpEntity = new HttpEntity<>(firebaseNotificationDTO, httpHeaders);
-        ResponseEntity<JSONPObject> responseEntity = restTemplate.exchange(url, HttpMethod.POST, httpEntity, JSONPObject.class);
-        responseEntity.getStatusCode();
-
+        restTemplate.exchange(url, HttpMethod.POST, httpEntity, Object.class);
     }
 
     @Override

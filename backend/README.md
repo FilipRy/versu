@@ -26,7 +26,7 @@ $ mvn -Dmaven.test.skip=true package
 $ docker build . -t versu_backend
 ```
 ### Configuration
-Use the EXAMPLE-application-\*.properties when configuring the application (* stands for profile).  You should override the `google.apikey` property to set an api key used to access Google Geolocation API. Furthermore, you should add your `firebase.api_key` and `firebase.sender_id` to use Firebase Cloud Messaging. If you run the application in 'local' or 'test' profile you have to provide an url path to a running instance of a MySQL database. You can run the instance in docker container by executing the `start-db-docker.sh` script in `/database`. If you run the application in 'docker' profile the database instance is started automatically by `docker-compose`. See Running for further information.
+Use the EXAMPLE-application-\*.properties when configuring the application (* stands for profile).  You should override the `google.apikey` property to set an api key used to access Google Geolocation API. Furthermore, you should provide `firebase.api_key` and `firebase.sender_id` of your Firebase project (created in Firebase Console) to use Firebase Cloud Messaging. If you run the application in 'local' or 'test' profile you have to provide an url path to a running instance of a MySQL database. You can run the instance in docker container by executing the `start-db-docker.sh` script in `/database`. If you run the application in 'docker' profile the database instance is started automatically by `docker-compose`. See Running for further information.
 
 P.S Don't forget to remove the EXAMPLE- prefix before running the app!
 
