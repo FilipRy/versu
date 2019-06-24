@@ -19,3 +19,11 @@ services:
       dockerfile: Dockerfile-mysql
     ports:
       - "3306:3306"
+
+  phphmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin:4.7
+    environment:
+      - "PMA_HOST=mmysql"
+    ports:
+      - "8080:80"
