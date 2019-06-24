@@ -106,7 +106,7 @@ public class SwaggerConfig {
                 .contact(new Contact("Developer", "https://github.com/FilipRy/versu", "rydzi.filip@gmail.com"))
                 .license("Open Source")
                 .licenseUrl("https://www.apache.org/licenses/LICENSE-2.0")
-                .version("0.8.0")
+                .version("0.9.0")
                 .build();
 
     }

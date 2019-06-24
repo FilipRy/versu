@@ -52,6 +52,7 @@ public class FollowingServiceImpl extends AbsCrudServiceImpl<Following, Long, Fo
             throw new EntityExistsException(ExceptionMessages.EntityExistsException.OBJECT_EXISTS);
         }
 
+        entity.setCreateTime(System.currentTimeMillis());
         entity = super.create(entity);
 
         Notification notification = new Notification(entity.getTarget(), entity.getId(), Notification.NotificationType.following, entity.getCreator());

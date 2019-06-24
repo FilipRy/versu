@@ -1,14 +1,6 @@
 package com.filip.versu.service.impl;
 
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SDKGlobalConfiguration;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.util.IOUtils;
 import com.filip.versu.entity.model.GoogleLocation;
 import com.filip.versu.entity.model.User;
 import com.filip.versu.entity.model.UserRole;
@@ -20,7 +12,6 @@ import com.filip.versu.repository.UserRepository;
 import com.filip.versu.service.*;
 import com.filip.versu.service.abs.GoogleLocationService;
 import com.filip.versu.service.impl.abs.AbsCrudServiceImpl;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,16 +19,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Arrays;
 
 @Service
@@ -110,70 +97,12 @@ public class UserServiceImpl extends AbsCrudServiceImpl<User, Long, UserReposito
             entity.setLocation(userLocation);
         }
 
-        if (entity.getProfilePhotoURL() != null) {
-            uploadProfilePhoto(entity);
-        }
-
         entity.setRoles(Arrays.asList(new UserRole("USER")));
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
 
         logger.info("User with name: " + entity.getUsername() + " has been registered.");
 
         return super.create(entity);
-    }
-
-    public void uploadProfilePhoto(User user) {
-
-        if(user.getProfilePhotoURL() == null) {
-            return;
-        }
-
-        if(!user.getProfilePhotoURL().startsWith("https://scontent.xx.fbcdn.net")) {//TODO find better solutions, this is just to accept only photos from facebook
-            return;
-        }
-
-        System.setProperty(SDKGlobalConfiguration.ENABLE_S3_SIGV4_SYSTEM_PROPERTY, "true");
-        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(amazonS3AccessKey, amazonS3SecretKey);
-        AmazonS3 s3client = new AmazonS3Client(awsCredentials);
-
-        try {
-            URL url = new URL(user.getProfilePhotoURL());
-
-            byte[] content = IOUtils.toByteArray(url.openStream());
-            int contentLength = content.length;
-
-            String profilePicName = DigestUtils.sha1Hex(user.getUsername());//username is unique
-            String objectKey = profilePicsDirName + "/" + profilePicName + ".jpg";
-
-            ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentType("image/jpeg");
-            objectMetadata.setContentLength(contentLength);
-            s3client.putObject(bucketName, objectKey, url.openStream(), objectMetadata);
-
-            user.setProfilePhotoURL(bucketUrl + objectKey);
-
-        } catch (AmazonServiceException ase) {
-            System.out.println("Caught an AmazonServiceException, which " +
-                    "means your request made it " +
-                    "to Amazon S3, but was rejected with an error response" +
-                    " for some reason.");
-            System.out.println("Error Message:    " + ase.getMessage());
-            System.out.println("HTTP Status Code: " + ase.getStatusCode());
-            System.out.println("AWS Error Code:   " + ase.getErrorCode());
-            System.out.println("Error Type:       " + ase.getErrorType());
-            System.out.println("Request ID:       " + ase.getRequestId());
-        } catch (AmazonClientException ace) {
-            System.out.println("Caught an AmazonClientException, which " +
-                    "means the client encountered " +
-                    "an internal error while trying to " +
-                    "communicate with S3, " +
-                    "such as not being able to access the network.");
-            System.out.println("Error Message: " + ace.getMessage());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

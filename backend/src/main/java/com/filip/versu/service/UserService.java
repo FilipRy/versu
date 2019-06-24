@@ -11,9 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface UserService extends CrudAuthService<User, Long>, UserDetailsService {
 
-
-    public void uploadProfilePhoto(User user);
-
     public User findOneByUsername(String name, User requester);
 
     public User findOneByUsername(String name);

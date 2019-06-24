@@ -45,7 +45,6 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
     private CommentRepository commentRepository;
 
 
-
     @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
@@ -57,7 +56,7 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
 
         commentRepository.setNamesToUtf8Mb4();//this is a hack to set name, otherwise emojis cannot be saved
 
-        if (ddlProperty.contains("create") && !profiles.contains("test") ) {
+        if (ddlProperty.contains("create") && !profiles.contains("test")) {
             init();
         }
 
@@ -70,226 +69,160 @@ public class UserBootstrap implements ApplicationListener<ContextRefreshedEvent>
 
         List<User> registeredUsers = new ArrayList<>();
 
-        String nameFilip = "Filip";
+        String usernames[] = {"Emily", "Alex", "Victoria"};
+        String quotes[] = {"Stydying...", "If you can dream it you can do it", "Fashion expert"};
+        String profilePhotos[] = { "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=format%2Ccompress&cs=tinysrgb&dpr=2&h=750&w=1260",
+                                    "https://images.pexels.com/photos/1121796/pexels-photo-1121796.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
+                                    "https://images.pexels.com/photos/1892994/pexels-photo-1892994.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"};
 
-        User userFilip = new User();
-        userFilip.setUsername(nameFilip);
-        userFilip.setPassword("000" + nameFilip);
-        userFilip.setEmail(nameFilip + "@" + nameFilip + ".com");
-
-        userFilip = userService.create(userFilip, userFilip);
-
-        String usernames[] = { "John", "Alex", "Victoria", "Emily", "Jeny", "George", "Ema", "Rome", "Robert", "Simona" };
-
-        for (String username: usernames) {
+        int i = 0;
+        for (String username : usernames) {
             User user = new User();
             user.setUsername(username);
-            user.setEmail(username.toLowerCase().replaceAll(" ", "")+"@test.com");
+            user.setEmail(username.toLowerCase().replaceAll(" ", "") + "@some-emailaddress.com");
             user.setPassword("123456789");
-            user.setQuote("Im the best");
+            user.setProfilePhotoURL(profilePhotos[i]);
+            user.setQuote(quotes[i++]);
+
             user = userService.create(user, user);
             registeredUsers.add(user);
         }
 
-        List<Following> filipsFollowers = new ArrayList<>();
-
-        for (int i = 0; i < registeredUsers.size() / 2; i++) {
-            User follower = registeredUsers.get(i);
-            Following following = new Following();
-            following.setTarget(userFilip);
-            following.setCreator(follower);
-            following = followingService.create(following, follower);
-            filipsFollowers.add(following);
-        }
-
-        for (int i = registeredUsers.size() / 2; i < registeredUsers.size(); i++) {
-            User followingUser = registeredUsers.get(i);
-            Following following = new Following();
-            following.setCreator(userFilip);
-            following.setTarget(followingUser);
-            followingService.create(following, userFilip);
+        for (i = 0; i < registeredUsers.size(); i++) {
+            for (int j = 0; j < registeredUsers.size(); j++) {
+                if (i != j) {
+                    Following following = new Following();
+                    following.setCreator(registeredUsers.get(i));
+                    following.setTarget(registeredUsers.get(j));
+                    followingService.create(following, registeredUsers.get(i));
+                }
+            }
         }
 
         List<Post> posts = new ArrayList<>();
 
         boolean isDouble[] = {false, true, false, true, false};
 
-        String titles[] = {"which you like more ?", "what to visit ?", "where to go on erasmus ?", "holidays ?", "Hmmm ?"};
+        Post erasmusPost = this.createErasmusPost(registeredUsers.get(0));
+        Post stanleyCupPost = this.createStanleyPost(registeredUsers.get(1));
+        Post fashionPost = this.createFashionPost(registeredUsers.get(2));
 
-        String possibilities[] = {"blue", "red", "BACastle", "Devin", "Amsterdam", "Berlin", "Sea", "Mountains", "Trump", "Clinton"};
+        PostFeedbackVote vote1 = new PostFeedbackVote();
+        vote1.setPostFeedbackPossibility(erasmusPost.getPostFeedbackPossibilities().get(1));
+        vote1.setOwner(registeredUsers.get(1));
+        vote1 = postFeedbackVoteService.create(vote1, registeredUsers.get(1));
 
-        String urls[] = {"https://static.pexels.com/photos/539/man-person-legs-grass.jpg",
-                "https://pixabay.com/static/uploads/photo/2016/04/12/15/50/bratislava-1324684_960_720.jpg",
-                "https://pixabay.com/static/uploads/photo/2013/07/08/14/58/castle-143992_960_720.jpg",
-                "https://static.pexels.com/photos/26393/pexels-photo-26393-large.jpg",
-                "https://static.pexels.com/photos/59040/pexels-photo-59040-large.jpeg",
-                "https://pixabay.com/static/uploads/photo/2016/02/21/16/13/rock-1213806_960_720.jpg",
-                "https://static.pexels.com/photos/129112/pexels-photo-129112.jpeg"};
+        PostFeedbackVote vote2 = new PostFeedbackVote();
+        vote2.setPostFeedbackPossibility(erasmusPost.getPostFeedbackPossibilities().get(1));
+        vote2.setOwner(registeredUsers.get(2));
+        vote2 = postFeedbackVoteService.create(vote2, registeredUsers.get(2));
 
 
-        Post filipsPost = null;
+        Comment comment = new Comment();
+        comment.setContent("I am voting for Berlin!");
+        comment.setPost(erasmusPost);
+        comment.setOwner(registeredUsers.get(1));
 
-        int urlIndex = 0;
-        for (int j = 0; j < 100; j++) {
+        comment = commentService.create(comment, registeredUsers.get(1));
 
-            int i = j % 5;
-            urlIndex = urlIndex % urls.length;
+        Comment comment1 = new Comment();
+        comment1.setContent("Thank you for your feedback!");
+        comment1.setPost(erasmusPost);
+        comment1.setOwner(erasmusPost.getOwner());
 
-            User user = registeredUsers.get(i);
-
-            Post post;
-
-            if (isDouble[i]) {
-                post = createVotingShoppingItem(user, null);
-                post.getPostFeedbackPossibilities().clear();
-                post.getPhotos().get(0).setPath(urls[urlIndex++]);
-                post.getPhotos().get(1).setPath(urls[urlIndex++]);
-            } else {
-                post = createShoppingItem(user, null);
-                post.getPostFeedbackPossibilities().clear();
-                post.getPhotos().get(0).setPath(urls[urlIndex++]);
-            }
-
-//            post.setSecretUrl("generate me");//forcing to generate an url
-            post.setAccessType(Post.AccessType.PUBLICC);
-
-            PostFeedbackPossibility possibility1 = new PostFeedbackPossibility();
-            possibility1.setName(possibilities[i * 2]);
-            possibility1.setPost(post);
-
-            PostFeedbackPossibility possibility2 = new PostFeedbackPossibility();
-            possibility2.setName(possibilities[i * 2 + 1]);
-            possibility2.setPost(post);
-
-            post.getPostFeedbackPossibilities().add(possibility1);
-            post.getPostFeedbackPossibilities().add(possibility2);
-
-            post.setDescription(titles[i] + "_ " + j);
-
-            if (i == 1) {
-                post.setOwner(userFilip);
-                post = postService.create(post, userFilip);
-            } else {
-                post = postService.create(post, user);
-            }
-
-            posts.add(post);
-
-        }
-
-        Post postToVote = posts.get(0);
-
-//        for (int i = 0; i < 40; i++) {
-//            String name = "name_" + i;
-//            User user = createAnonymUser(postToVote.getSecretUrl(), name);
-//
-//            user = userService.create(user, user);
-//
-//            user.setSecretUrl(postToVote.getSecretUrl());
-//            user.setUserRole(User.UserRole.USER_WITH_LINK);
-//
-//            PostFeedbackVote postFeedbackVote = new PostFeedbackVote();
-//            postFeedbackVote.setPostFeedbackPossibility(postToVote.getPostFeedbackPossibilities().get(0));
-//            postFeedbackVote.setOwner(user);
-//
-//            Comment comment = new Comment();
-//            comment.setOwner(user);
-//            comment.setPost(postToVote);
-//            comment.setContent("this is beautiful, I am voting for " + postToVote.getPostFeedbackPossibilities().get(0).getName());
-//
-//            postFeedbackVote = postFeedbackVoteService.create(postFeedbackVote, user);
-//
-//            comment = commentService.create(comment, user);
-//        }
+        comment1 = commentService.create(comment1, registeredUsers.get(0));
 
     }
 
-    public static Post createShoppingItem(User owner, List<User> viewers) {
-        PostPhoto photo = new PostPhoto("https://pbs.twimg.com/media/CFJ_k30WYAAPd4Z.jpg", System.currentTimeMillis());
+    private Post createErasmusPost(User owner) {
 
-        Post post = new Post();
+        Post erasmusPost = new Post();
+        erasmusPost.setOwner(owner);
+        erasmusPost.setAccessType(Post.AccessType.FOLLOWERS);
+        erasmusPost.setDescription("Where to go on erasmus ?");
+        PostPhoto postPhoto = new PostPhoto();
+        postPhoto.setPost(erasmusPost);
+        postPhoto.setPath("https://static.pexels.com/photos/26393/pexels-photo-26393-large.jpg");
+        List<PostPhoto> postPhotos = new ArrayList<>();
+        postPhotos.add(postPhoto);
+        erasmusPost.setPhotos(postPhotos);
+        PostFeedbackPossibility possibility1 = new PostFeedbackPossibility();
+        possibility1.setPost(erasmusPost);
+        possibility1.setName("Amsterdam");
+        PostFeedbackPossibility possibility2 = new PostFeedbackPossibility();
+        possibility2.setPost(erasmusPost);
+        possibility2.setName("Berlin");
+        List<PostFeedbackPossibility> possibilities = new ArrayList<>();
+        possibilities.add(possibility1);
+        possibilities.add(possibility2);
+        erasmusPost.setPostFeedbackPossibilities(possibilities);
+        erasmusPost = postService.create(erasmusPost, owner);
 
-        List<PostPhoto> photos = new ArrayList<>();
-        photo.setPost(post);
-        photos.add(photo);
+        return erasmusPost;
+    }
+
+    private Post createStanleyPost(User owner) {
+
+        Post stanleyCupPost = new Post();
+        stanleyCupPost.setOwner(owner);
+        stanleyCupPost.setAccessType(Post.AccessType.PUBLICC);
+        stanleyCupPost.setDescription("Who will win the Stanley cup in 2019 ?");
+        PostPhoto charaPhoto = new PostPhoto();
+        charaPhoto.setPost(stanleyCupPost);
+        charaPhoto.setPath("https://s3.eu-central-1.amazonaws.com/versu-app/1_1561365618528_0");
+        List<PostPhoto> postPhotos = new ArrayList<>();
+        postPhotos.add(charaPhoto);
+        stanleyCupPost.setPhotos(postPhotos);
 
         PostFeedbackPossibility possibility1 = new PostFeedbackPossibility();
-        possibility1.setPost(post);
-        possibility1.setName("like");
-
+        possibility1.setPost(stanleyCupPost);
+        possibility1.setName("Bruins");
         PostFeedbackPossibility possibility2 = new PostFeedbackPossibility();
-        possibility2.setPost(post);
-        possibility2.setName("love");
+        possibility2.setPost(stanleyCupPost);
+        possibility2.setName("Blues");
+        List<PostFeedbackPossibility> possibilities = new ArrayList<>();
+        possibilities.add(possibility1);
+        possibilities.add(possibility2);
+        stanleyCupPost.setPostFeedbackPossibilities(possibilities);
 
-        List<PostFeedbackPossibility> postFeedbackPossibilities = new ArrayList<>();
-        postFeedbackPossibilities.add(possibility1);
-        postFeedbackPossibilities.add(possibility2);
+        stanleyCupPost = postService.create(stanleyCupPost, owner);
 
-        post.setPostFeedbackPossibilities(postFeedbackPossibilities);
-
-        post.setOwner(owner);
-        post.setAccessType(Post.AccessType.SPECIFIC);
-        post.setPhotos(photos);
-        post.setDescription("some desc");
-
-        GoogleLocation location = new GoogleLocation();
-        location.setGoogleID("ChIJhT-9kj-JbEcRFjPcvf5V47s");
-        location.setLatitude(48.14050109999999);
-        location.setLongitude(17.1213257);
-
-        post.setLocation(null);
-
-        if (viewers != null) {
-            post.setViewers(viewers);
-        }
-
-        return post;
+        return stanleyCupPost;
     }
 
-    public static Post createVotingShoppingItem(User owner, List<User> viewers) {
-        Post post = createShoppingItem(owner, viewers);
+    private Post createFashionPost(User owner) {
 
-        List<PostPhoto> photos = new ArrayList<>();
-        PostPhoto photo = new PostPhoto("http://g02.a.alicdn.com/kf/HTB1dkhpKVXXXXcrXFXXq6xXFXXXp/Red-Black-font-b-Grey-b-font-Women-Autumn-Winter-Three-Quarter-Sleeve-Pleated-Party-font.jpg", System.currentTimeMillis());
-        photo.setPost(post);
-        PostPhoto photo2 = new PostPhoto("http://www.stylishwife.com/wp-content/uploads/2015/04/Real-Women-Outfits-No-Models-to-Try-This-Year-15.jpg", System.currentTimeMillis());
-        photo2.setPost(post);
+        Post fashionPost = new Post();
+        fashionPost.setOwner(owner);
+        fashionPost.setAccessType(Post.AccessType.FOLLOWERS);
+        fashionPost.setDescription("What to wear on first day at work ?");
+        PostPhoto photo1 = new PostPhoto();
+        photo1.setPost(fashionPost);
+        photo1.setPath("https://image.dhgate.com/0x0/f2/albu/g1/M01/51/A5/rBVaGFVfXd-AJQF_AAFxSWL_Fx0684.jpg");
+        photo1.setPost(fashionPost);
+        PostPhoto photo2 = new PostPhoto();
+        photo2.setPost(fashionPost);
+        photo2.setPath("https://highfashionusa.com/wp-content/uploads/2018/03/8301-9vfdzv.jpg");
+        List<PostPhoto> postPhotos = new ArrayList<>();
+        postPhotos.add(photo1);
+        postPhotos.add(photo2);
 
-        photos.add(photo);
-        photos.add(photo2);
+        fashionPost.setPhotos(postPhotos);
 
-        post.setPhotos(photos);
+        PostFeedbackPossibility possibility1 = new PostFeedbackPossibility();
+        possibility1.setPost(fashionPost);
+        possibility1.setName("Black");
+        PostFeedbackPossibility possibility2 = new PostFeedbackPossibility();
+        possibility2.setPost(fashionPost);
+        possibility2.setName("Navy");
+        List<PostFeedbackPossibility> possibilities = new ArrayList<>();
+        possibilities.add(possibility1);
+        possibilities.add(possibility2);
+        fashionPost.setPostFeedbackPossibilities(possibilities);
 
-        return post;
+        fashionPost = postService.create(fashionPost, owner);
+
+        return fashionPost;
     }
-
-
-//    /**
-//     * Precondition: secretUrl must be associated with a post.
-//     *
-//     * @param secretUrl
-//     * @param username
-//     * @return
-//     */
-//    public static User createAnonymUser(String secretUrl, String username) {
-//
-//        UserDTO userDTO = new UserDTO();
-//        userDTO.username = username;
-//        userDTO.email = username + "anonym@mail.com";
-//        userDTO.profilePhotoURL = "https://pixel.nymag.com/imgs/fashion/daily/2016/04/06/06-emily-ratajkowski.w330.h412.jpg";
-//
-//        ExternalUserDTO externalUserDTO = new ExternalUserDTO();
-//        externalUserDTO.accountProvider = ExternalAccount.ExternalAccountProvider.ANONYM_NAME;
-//        externalUserDTO.id = secretUrl + "_" + username;
-//
-//        ExternalAccount externalAccount = new ExternalAccount(externalUserDTO);
-//
-//        User user = new User(userDTO);
-//        user.getExternalAccounts().add(externalAccount);
-//        externalAccount.setAppUser(user);
-//
-//        return user;
-//
-//    }
 
 }

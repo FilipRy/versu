@@ -42,7 +42,7 @@ $ mvn clean verify -Dspring.profiles.active=test
 1. Run an instanse of MySQL database (see Configuration Section)
 2. Execute the packaged application
 ```
-$ java -jar target/backend-0.8.0.jar --spring.profiles.active=local
+$ java -jar target/backend-0.9.0.jar --spring.profiles.active=local
 ```
 
 ### In Docker container
